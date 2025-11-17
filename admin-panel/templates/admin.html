@@ -1,0 +1,734 @@
+{% extends "base.html" %}
+
+{% block title %}File Management - Private Cloud Storage{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2><i class="bi bi-folder2-open"></i> File Management</h2>
+        <p class="text-muted">Manage your cloud storage files and configurations</p>
+    </div>
+</div>
+
+<!-- Service Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-hdd-network" style="font-size: 2rem; color: #0d6efd;"></i>
+                <h5 class="card-title mt-2">Services</h5>
+                <h3 id="service-count">-</h3>
+                <small class="text-muted">Active</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-file-earmark" style="font-size: 2rem; color: #198754;"></i>
+                <h5 class="card-title mt-2">Total Files</h5>
+                <h3 id="total-users">-</h3>
+                <small class="text-muted">Stored</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-check-circle" style="font-size: 2rem; color: #20c997;"></i>
+                <h5 class="card-title mt-2">Active</h5>
+                <h3 id="active-users">-</h3>
+                <small class="text-muted">Files</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-server" style="font-size: 2rem; color: #6c757d;"></i>
+                <h5 class="card-title mt-2">Server</h5>
+                <h3 class="text-success">{{ domain }}</h3>
+                <small class="text-muted">Domain</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Messages -->
+<div id="alert-container"></div>
+
+<!-- Configuration Management Section -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-gear"></i> Configuration Management</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <button class="btn btn-success w-100" onclick="createBackup()">
+                    <i class="bi bi-archive"></i> Create Backup
+                </button>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#backupModal">
+                    <i class="bi bi-clock-history"></i> View Backups
+                </button>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-warning w-100" onclick="updateAllConfigs()">
+                    <i class="bi bi-arrow-repeat"></i> Reload All Services
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Management Section -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-files"></i> Files</h5>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            <i class="bi bi-plus-circle"></i> Upload New File
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Created</th>
+                        <th>Last Access</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table">
+                    <tr>
+                        <td colspan="5" class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Upload New File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-user-form">
+                    <div class="mb-3">
+                        <label for="new-username" class="form-label">Filename</label>
+                        <input type="text" class="form-control" id="new-username" required 
+                               placeholder="Enter filename (e.g., user1)">
+                        <div class="form-text">Alphanumeric characters and hyphens only</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createUser()">
+                    <i class="bi bi-upload"></i> Upload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Config Modal -->
+<div class="modal fade" id="configModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-file-code"></i> Configuration Files</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="config-content">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Backup Modal -->
+<div class="modal fade" id="backupModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-clock-history"></i> Backup Management</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="backup-list">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentUsers = [];
+
+// Load initial data
+document.addEventListener('DOMContentLoaded', function() {
+    loadStatus();
+    loadUsers();
+    
+    // Refresh every 30 seconds
+    setInterval(loadStatus, 30000);
+});
+
+function showAlert(message, type = 'success') {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    document.getElementById('alert-container').innerHTML = alertHtml;
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            alert.classList.remove('show');
+            setTimeout(() => alert.remove(), 150);
+        }
+    }, 5000);
+}
+
+function loadStatus() {
+    fetch('/api/v2/storage/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const activeServices = Object.values(data.services).filter(s => s).length;
+                document.getElementById('service-count').textContent = activeServices;
+                document.getElementById('total-users').textContent = data.stats.total_users;
+                document.getElementById('active-users').textContent = data.stats.active_users;
+            }
+        })
+        .catch(error => console.error('Error loading status:', error));
+}
+
+function loadUsers() {
+    fetch('/api/v2/storage/files')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentUsers = data.files;
+                renderUsersTable();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading users:', error);
+            document.getElementById('users-table').innerHTML = `
+                <tr><td colspan="5" class="text-center text-danger">Error loading files</td></tr>
+            `;
+        });
+}
+
+function renderUsersTable() {
+    const tbody = document.getElementById('users-table');
+    
+    if (currentUsers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No files uploaded yet</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = currentUsers.map(user => `
+        <tr>
+            <td><i class="bi bi-file-earmark-text"></i> ${user.username}</td>
+            <td>${formatDate(user.created_at)}</td>
+            <td>${user.last_seen ? formatDate(user.last_seen) : '<span class="text-muted">Never</span>'}</td>
+            <td>
+                <span class="badge ${user.is_active ? 'bg-success' : 'bg-secondary'} status-badge">
+                    ${user.is_active ? 'Active' : 'Inactive'}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-info" onclick="viewConfigs('${user.username}')" title="View configs">
+                    <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.username}')" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleString();
+}
+
+function createUser() {
+    const username = document.getElementById('new-username').value.trim();
+    
+    if (!username) {
+        showAlert('Please enter a filename', 'danger');
+        return;
+    }
+    
+    fetch('/api/v2/storage/files', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filename: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+            document.getElementById('add-user-form').reset();
+            loadUsers();
+            loadStatus();
+        } else {
+            showAlert(data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error creating user: ' + error.message, 'danger');
+    });
+}
+
+function deleteUser(username) {
+    if (!confirm(`Are you sure you want to delete file "${username}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    fetch(`/api/v2/storage/files/${username}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            loadUsers();
+            loadStatus();
+        } else {
+            showAlert(data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error deleting user: ' + error.message, 'danger');
+    });
+}
+
+function viewConfigs(username) {
+    const modal = new bootstrap.Modal(document.getElementById('configModal'));
+    modal.show();
+    
+    document.getElementById('config-content').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+    
+    fetch(`/api/v2/storage/files/${username}/download`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderConfigs(username, data.configs);
+            } else {
+                document.getElementById('config-content').innerHTML = `
+                    <div class="alert alert-danger">${data.error}</div>
+                `;
+            }
+        })
+        .catch(error => {
+            document.getElementById('config-content').innerHTML = `
+                <div class="alert alert-danger">Error loading configurations</div>
+            `;
+        });
+}
+
+function renderConfigs(username, configs) {
+    const configHtml = `
+        <h6 class="mb-3">Configuration Files for: <strong>${username}</strong></h6>
+        
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#xray-xtls">Xray XTLS</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#xray-ws">Xray WS</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#trojan">Trojan</a>
+            </li>
+            ${configs.hysteria2_link ? '<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#hysteria2">Hysteria2</a></li>' : ''}
+            ${configs.shadowtls_json ? '<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#shadowtls">ShadowTLS</a></li>' : ''}
+            ${configs.tuic_json ? '<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tuic">TUIC</a></li>' : ''}
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#wireguard">WireGuard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#qrcodes">QR Codes</a>
+            </li>
+        </ul>
+        
+        <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="xray-xtls">
+                <h6>Connection Link:</h6>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" value="${configs.xray_xtls_link || 'N/A'}" readonly>
+                    <button class="btn btn-outline-secondary" onclick="copyToClipboard('${configs.xray_xtls_link}')">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+                <h6>JSON Config:</h6>
+                <pre class="bg-light p-3 rounded"><code>${configs.xray_xtls_json || 'N/A'}</code></pre>
+            </div>
+            
+            <div class="tab-pane fade" id="xray-ws">
+                <h6>Connection Link:</h6>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" value="${configs.xray_ws_link || 'N/A'}" readonly>
+                    <button class="btn btn-outline-secondary" onclick="copyToClipboard('${configs.xray_ws_link}')">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+                <h6>JSON Config:</h6>
+                <pre class="bg-light p-3 rounded"><code>${configs.xray_ws_json || 'N/A'}</code></pre>
+            </div>
+            
+            <div class="tab-pane fade" id="trojan">
+                <h6>Connection Link:</h6>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" value="${configs.trojan_link || 'N/A'}" readonly>
+                    <button class="btn btn-outline-secondary" onclick="copyToClipboard('${configs.trojan_link}')">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+                <h6>JSON Config:</h6>
+                <pre class="bg-light p-3 rounded"><code>${configs.trojan_json || 'N/A'}</code></pre>
+            </div>
+            
+            ${configs.hysteria2_link ? `
+            <div class="tab-pane fade" id="hysteria2">
+                <h6>Connection Link:</h6>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" value="${configs.hysteria2_link}" readonly>
+                    <button class="btn btn-outline-secondary" onclick="copyToClipboard('${configs.hysteria2_link}')">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+                <h6>JSON Config (Sing-box):</h6>
+                <pre class="bg-light p-3 rounded"><code>${configs.hysteria2_json}</code></pre>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> <strong>Recommended for:</strong> High-speed connections, UDP-based protocol
+                </div>
+            </div>
+            ` : ''}
+            
+            ${configs.shadowtls_json ? `
+            <div class="tab-pane fade" id="shadowtls">
+                <h6>JSON Config (Sing-box):</h6>
+                <pre class="bg-light p-3 rounded"><code>${configs.shadowtls_json}</code></pre>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> <strong>Recommended for:</strong> Maximum obfuscation, deep packet inspection bypass
+                </div>
+            </div>
+            ` : ''}
+            
+            ${configs.tuic_json ? `
+            <div class="tab-pane fade" id="tuic">
+                <h6>JSON Config (Sing-box):</h6>
+                <pre class="bg-light p-3 rounded"><code>${configs.tuic_json}</code></pre>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> <strong>Recommended for:</strong> Low latency, QUIC-based protocol
+                </div>
+            </div>
+            ` : ''}
+            
+            <div class="tab-pane fade" id="wireguard">
+                <h6>Native Configuration:</h6>
+                <pre class="bg-light p-3 rounded"><code>${configs.wireguard_conf || 'N/A'}</code></pre>
+                ${configs.wireguard_obfs_conf ? `
+                <h6 class="mt-3">WebSocket Obfuscated Configuration:</h6>
+                <pre class="bg-light p-3 rounded"><code>${configs.wireguard_obfs_conf}</code></pre>
+                ` : ''}
+                <button class="btn btn-primary" onclick="downloadConfig('${username}', 'wireguard')">
+                    <i class="bi bi-download"></i> Download .conf
+                </button>
+            </div>
+            
+            <div class="tab-pane fade" id="qrcodes">
+                <div class="alert alert-info mb-3">
+                    <i class="bi bi-info-circle"></i> Scan QR codes with your mobile VPN client app
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="bi bi-qr-code"></i> Xray XTLS-Vision</h6>
+                        <img src="/api/v2/storage/files/${username}/qrcode/xray-xtls" class="img-fluid border rounded" alt="Xray XTLS QR">
+                        <small class="text-muted d-block mt-1">Best for desktop</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="bi bi-qr-code"></i> Xray WebSocket</h6>
+                        <img src="/api/v2/storage/files/${username}/qrcode/xray-ws" class="img-fluid border rounded" alt="Xray WS QR">
+                        <small class="text-muted d-block mt-1">Fallback option</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="bi bi-qr-code"></i> Trojan-Go</h6>
+                        <img src="/api/v2/storage/files/${username}/qrcode/trojan" class="img-fluid border rounded" alt="Trojan QR">
+                        <small class="text-muted d-block mt-1">Alternative protocol</small>
+                    </div>
+                    ${configs.hysteria2_link ? `
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="bi bi-qr-code"></i> Hysteria2</h6>
+                        <img src="/api/v2/storage/files/${username}/qrcode/hysteria2" class="img-fluid border rounded" alt="Hysteria2 QR">
+                        <small class="text-muted d-block mt-1">High speed UDP</small>
+                    </div>
+                    ` : ''}
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="bi bi-qr-code"></i> WireGuard</h6>
+                        <img src="/api/v2/storage/files/${username}/qrcode/wireguard" class="img-fluid border rounded" alt="WireGuard QR">
+                        <small class="text-muted d-block mt-1">Simple & fast</small>
+                    </div>
+                </div>
+                <div class="alert alert-warning mt-3">
+                    <strong>Mobile Apps:</strong>
+                    <ul class="mb-0">
+                        <li><strong>Xray/Trojan:</strong> v2rayNG (Android), Shadowrocket (iOS)</li>
+                        <li><strong>Hysteria2/ShadowTLS/TUIC:</strong> Sing-box app</li>
+                        <li><strong>WireGuard:</strong> Official WireGuard app</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('config-content').innerHTML = configHtml;
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showAlert('Copied to clipboard!', 'success');
+    }).catch(err => {
+        showAlert('Failed to copy', 'danger');
+    });
+}
+
+function downloadConfig(username, protocol) {
+    // Trigger download
+    window.location.href = `/api/v2/storage/files/${username}/download?protocol=${protocol}`;
+}
+
+function createBackup() {
+    if (!confirm('Create a backup of all configurations?')) {
+        return;
+    }
+    
+    fetch('/api/v2/storage/backup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ description: 'Manual backup' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Backup created successfully: ' + data.backup_name, 'success');
+        } else {
+            showAlert(data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error creating backup: ' + error.message, 'danger');
+    });
+}
+
+function updateAllConfigs() {
+    if (!confirm('Update all server configurations and reload services? This may cause brief disconnections.')) {
+        return;
+    }
+    
+    fetch('/api/v2/storage/configs/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            loadStatus();
+        } else {
+            showAlert(data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error updating configs: ' + error.message, 'danger');
+    });
+}
+
+// Load backups when modal is shown
+document.getElementById('backupModal').addEventListener('show.bs.modal', function() {
+    loadBackups();
+});
+
+function loadBackups() {
+    document.getElementById('backup-list').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+    
+    fetch('/api/v2/storage/backup')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderBackups(data.backups);
+            } else {
+                document.getElementById('backup-list').innerHTML = `
+                    <div class="alert alert-danger">${data.error}</div>
+                `;
+            }
+        })
+        .catch(error => {
+            document.getElementById('backup-list').innerHTML = `
+                <div class="alert alert-danger">Error loading backups</div>
+            `;
+        });
+}
+
+function renderBackups(backups) {
+    if (backups.length === 0) {
+        document.getElementById('backup-list').innerHTML = `
+            <div class="text-center text-muted">No backups available</div>
+        `;
+        return;
+    }
+    
+    const backupHtml = `
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Description</th>
+                    <th>Size</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${backups.map(backup => `
+                    <tr>
+                        <td>${formatDate(backup.timestamp)}</td>
+                        <td>${backup.description || '-'}</td>
+                        <td>${formatBytes(backup.size)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-success" onclick="restoreBackup('${backup.filename}')" title="Restore">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <button class="btn btn-sm btn-info" onclick="downloadBackup('${backup.filename}')" title="Download">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteBackupFile('${backup.filename}')" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+    
+    document.getElementById('backup-list').innerHTML = backupHtml;
+}
+
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function restoreBackup(filename) {
+    if (!confirm(`Restore backup "${filename}"? This will overwrite current configurations.`)) {
+        return;
+    }
+    
+    fetch(`/api/v2/storage/backup/${filename}/restore`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('backupModal')).hide();
+            loadUsers();
+            loadStatus();
+        } else {
+            showAlert(data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error restoring backup: ' + error.message, 'danger');
+    });
+}
+
+function downloadBackup(filename) {
+    window.location.href = `/api/v2/storage/backup/${filename}/download`;
+}
+
+function deleteBackupFile(filename) {
+    if (!confirm(`Delete backup "${filename}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    fetch(`/api/v2/storage/backup/${filename}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            loadBackups();
+        } else {
+            showAlert(data.error, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error deleting backup: ' + error.message, 'danger');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Private Cloud Storage{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <i class="bi bi-cloud-upload"></i> Private Cloud Storage
+        </a>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-cloud-lock" style="font-size: 3rem; color: #0d6efd;"></i>
+                    <h3 class="mt-3">Storage Management</h3>
+                    <p class="text-muted">Sign in to access your files</p>
+                </div>
+
+                <div id="error-alert" class="alert alert-danger d-none" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> <span id="error-message"></span>
+                </div>
+
+                <form id="login-form">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" id="username" name="username" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" id="login-btn">
+                            <i class="bi bi-box-arrow-in-right"></i> Sign In
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check"></i> Secure connection established
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const loginBtn = document.getElementById('login-btn');
+        const errorAlert = document.getElementById('error-alert');
+        
+        // Disable button and show loading
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in...';
+        errorAlert.classList.add('d-none');
+        
+        fetch('/api/v2/storage/auth', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                throw new Error(data.error || 'Authentication failed');
+            }
+        })
+        .catch(error => {
+            errorAlert.classList.remove('d-none');
+            document.getElementById('error-message').textContent = error.message;
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Sign In';
+        });
+    });
+</script>
+{% endblock %}

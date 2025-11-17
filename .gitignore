@@ -1,0 +1,64 @@
+# Environment variables
+.env
+.env.local
+
+# Data directories (runtime data, not source code)
+data/
+!data/www/
+backups/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Docker
+.docker/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Kiro specs (optional - remove if you want to include them)
+.kiro/specs/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# OS
+Thumbs.db

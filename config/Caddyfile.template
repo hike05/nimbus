@@ -1,0 +1,198 @@
+# Global configuration
+{
+    # Automatic HTTPS for all sites
+    auto_https on
+    
+    # HTTP/3 support for better QUIC masking
+    servers {
+        protocol {
+            experimental_http3
+        }
+    }
+    
+    # Security headers
+    header {
+        # Remove server identification
+        -Server
+        # Security headers
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+}
+
+# Main domain configuration - replace DOMAIN_NAME with your actual domain
+DOMAIN_NAME, www.DOMAIN_NAME, api.DOMAIN_NAME, cdn.DOMAIN_NAME, files.DOMAIN_NAME {
+    # Automatic Let's Encrypt certificates
+    
+    # Rate limiting for admin endpoints
+    rate_limit {
+        zone admin {
+            key {remote_host}
+            events 5
+            window 1m
+        }
+        zone api {
+            key {remote_host}
+            events 100
+            window 1m
+        }
+        zone upload {
+            key {remote_host}
+            events 10
+            window 1m
+        }
+    }
+    
+    # SNI-based routing for VPN protocols using subdomains
+    @vision tls sni DOMAIN_NAME
+    handle @vision {
+        reverse_proxy xray:8001 {
+            # Health check
+            health_uri /health
+            health_interval 30s
+            health_timeout 5s
+        }
+    }
+    
+    @trojan tls sni www.DOMAIN_NAME
+    handle @trojan {
+        reverse_proxy trojan:8002 {
+            health_uri /health
+            health_interval 30s
+            health_timeout 5s
+        }
+    }
+    
+    @shadowtls tls sni api.DOMAIN_NAME
+    handle @shadowtls {
+        reverse_proxy singbox:8003 {
+            health_uri /health
+            health_interval 30s
+            health_timeout 5s
+        }
+    }
+    
+    @hysteria tls sni cdn.DOMAIN_NAME
+    handle @hysteria {
+        reverse_proxy singbox:8005 {
+            health_uri /health
+            health_interval 30s
+            health_timeout 5s
+        }
+    }
+    
+    @tuic tls sni files.DOMAIN_NAME
+    handle @tuic {
+        reverse_proxy singbox:8006 {
+            health_uri /health
+            health_interval 30s
+            health_timeout 5s
+        }
+    }
+    
+    # HTTP endpoints for main domain
+    handle {
+        root * /srv
+        file_server
+        
+        # Admin panel with obfuscated endpoint and rate limiting
+        handle ADMIN_ENDPOINT {
+            rate_limit admin
+            reverse_proxy admin:8010 {
+                header_up X-Real-IP {remote_host}
+                header_up X-Forwarded-For {remote_host}
+                header_up X-Forwarded-Proto {scheme}
+            }
+        }
+        
+        # Xray WebSocket with realistic headers
+        handle XRAY_WS_ENDPOINT {
+            rate_limit api
+            reverse_proxy xray:8004 {
+                header_up Upgrade websocket
+                header_up Connection upgrade
+                header_up X-Real-IP {remote_host}
+                header_up X-Forwarded-For {remote_host}
+                # Mimic real analytics script
+                header_down Content-Type "application/javascript"
+                header_down Cache-Control "public, max-age=31536000"
+            }
+        }
+        
+        # WireGuard WebSocket masquerading as font file
+        handle WG_WS_ENDPOINT {
+            rate_limit api
+            reverse_proxy wireguard:8006 {
+                header_up Upgrade websocket
+                header_up Connection upgrade
+                header_up X-Real-IP {remote_host}
+                header_up X-Forwarded-For {remote_host}
+                # Mimic real font file
+                header_down Content-Type "font/woff2"
+                header_down Cache-Control "public, max-age=31536000"
+                header_down Access-Control-Allow-Origin "*"
+            }
+        }
+        
+        # Additional obfuscated endpoints for future use
+        handle HEALTH_ENDPOINT {
+            rate_limit api
+            respond "Service Unavailable" 503
+        }
+        
+        handle WEBRTC_ENDPOINT {
+            rate_limit api
+            respond "WebRTC signaling not available" 404
+        }
+        
+        # Block suspicious User-Agents and automated tools
+        @blocked_agents {
+            header User-Agent *curl*
+            header User-Agent *wget*
+            header User-Agent *python*
+            header User-Agent *scanner*
+            header User-Agent *bot*
+            header User-Agent *crawler*
+            header User-Agent *spider*
+            header User-Agent *nmap*
+            header User-Agent *masscan*
+            header User-Agent *zmap*
+        }
+        handle @blocked_agents {
+            respond "404 Not Found" 404
+        }
+        
+        # Block common vulnerability scanners
+        @blocked_paths {
+            path /.env*
+            path /wp-admin*
+            path /admin*
+            path /phpmyadmin*
+            path /.git*
+            path /config*
+            path /backup*
+            path /test*
+            path /debug*
+        }
+        handle @blocked_paths {
+            respond "404 Not Found" 404
+        }
+        
+        # Add realistic response headers for static files
+        @static_files {
+            path *.css *.js *.png *.jpg *.jpeg *.gif *.ico *.svg *.woff *.woff2 *.ttf *.eot
+        }
+        handle @static_files {
+            header Cache-Control "public, max-age=31536000"
+            header Vary "Accept-Encoding"
+        }
+        
+        # Default fallback with realistic cloud service response
+        handle {
+            header Content-Type "text/html; charset=utf-8"
+            header X-Powered-By "CloudStorage/2.1"
+        }
+    }
+}
