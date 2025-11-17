@@ -1,12 +1,22 @@
-FROM trojangfw/trojan-go:latest
+FROM alpine:latest
 
-# Install additional tools for health checks and logging
+# Install runtime dependencies
 RUN apk add --no-cache \
     curl \
     ca-certificates \
     tzdata \
     python3 \
     tini
+
+# Download and install trojan-go binary
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then ARCH="amd64"; fi && \
+    if [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; fi && \
+    curl -Lo /tmp/trojan-go.zip "https://github.com/p4gefau1t/trojan-go/releases/latest/download/trojan-go-linux-${ARCH}.zip" && \
+    unzip /tmp/trojan-go.zip -d /tmp && \
+    mv /tmp/trojan-go /usr/local/bin/trojan-go && \
+    chmod +x /usr/local/bin/trojan-go && \
+    rm -rf /tmp/trojan-go*
 
 # Create non-root user for security
 RUN addgroup -g 1000 trojan && \

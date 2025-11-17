@@ -5,6 +5,11 @@ Masqueraded as a cloud storage management interface.
 
 import os
 import sys
+
+# Add paths FIRST before any other imports
+sys.path.insert(0, '/app')
+sys.path.insert(0, '/app/core')
+
 import json
 import secrets
 from pathlib import Path
@@ -14,15 +19,15 @@ from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file
 import bcrypt
 
-# Add core modules to path
-sys.path.insert(0, '/app/core')
-sys.path.insert(0, '/app')
-
+# Import core modules
 from user_storage import UserStorage
 from config_generator import ConfigGenerator
 from service_manager import DockerServiceManager
 from client_config_manager import ClientConfigManager
 from backup_manager import BackupManager
+from system_monitor import SystemMonitor
+from log_reader import LogReader
+from update_manager import UpdateManager
 
 # Try to import endpoint manager from parent directory
 try:
@@ -48,6 +53,9 @@ config_generator = ConfigGenerator(str(CONFIG_DIR), DOMAIN)
 service_manager = DockerServiceManager()
 client_config_manager = ClientConfigManager(str(CONFIG_DIR), DOMAIN)
 backup_manager = BackupManager(str(CONFIG_DIR))
+system_monitor = SystemMonitor()
+log_reader = LogReader()
+update_manager = UpdateManager(str(DATA_DIR))
 
 # Initialize endpoint manager if available
 endpoint_manager = None
@@ -92,15 +100,17 @@ def health():
     return jsonify({'status': 'healthy'}), 200
 
 
-@app.route('/api/v2/storage/login', methods=['GET'])
+@app.route('/admin/login', methods=['GET'])
+@app.route('/api/v2/storage/login', methods=['GET'])  # Keep for backward compatibility
 def login():
-    """Login page (masqueraded as storage login)."""
+    """Login page."""
     if 'authenticated' in session and session['authenticated']:
         return redirect(url_for('admin_panel'))
     return render_template('login.html')
 
 
-@app.route('/api/v2/storage/auth', methods=['POST'])
+@app.route('/admin/auth', methods=['POST'])
+@app.route('/api/v2/storage/auth', methods=['POST'])  # Keep for backward compatibility
 def authenticate():
     """Authenticate admin user."""
     data = request.get_json()
@@ -115,35 +125,38 @@ def authenticate():
                 session['authenticated'] = True
                 session['username'] = username
                 session.permanent = True
-                return jsonify({'success': True, 'redirect': '/api/v2/storage/upload'})
+                return jsonify({'success': True, 'redirect': '/admin'})
         else:
             # Development mode - allow any password if hash not set
             session['authenticated'] = True
             session['username'] = username
             session.permanent = True
-            return jsonify({'success': True, 'redirect': '/api/v2/storage/upload'})
+            return jsonify({'success': True, 'redirect': '/admin'})
     
     return jsonify({'error': 'Invalid credentials'}), 401
 
 
-@app.route('/api/v2/storage/logout', methods=['POST'])
+@app.route('/admin/logout', methods=['POST'])
+@app.route('/api/v2/storage/logout', methods=['POST'])  # Keep for backward compatibility
 def logout():
     """Logout admin user."""
     session.clear()
     return jsonify({'success': True})
 
 
-@app.route('/api/v2/storage/upload', methods=['GET'])
+@app.route('/admin', methods=['GET'])
+@app.route('/api/v2/storage/upload', methods=['GET'])  # Keep for backward compatibility
 @require_auth
 def admin_panel():
-    """Main admin panel (masqueraded as file upload interface)."""
+    """Main admin panel."""
     return render_template('admin.html', domain=DOMAIN)
 
 
-@app.route('/api/v2/storage/files', methods=['GET'])
+@app.route('/admin/users', methods=['GET'])
+@app.route('/api/v2/storage/files', methods=['GET'])  # Keep for backward compatibility
 @require_auth
 def list_users():
-    """List all VPN users (masqueraded as file listing)."""
+    """List all VPN users."""
     try:
         users = user_storage.load_users()
         
@@ -166,10 +179,11 @@ def list_users():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/files', methods=['POST'])
+@app.route('/admin/users', methods=['POST'])
+@app.route('/api/v2/storage/files', methods=['POST'])  # Keep for backward compatibility
 @require_auth
 def create_user():
-    """Create new VPN user (masqueraded as file upload)."""
+    """Create new VPN user."""
     try:
         data = request.get_json()
         username = data.get('filename', '').strip()  # Masqueraded as "filename"
@@ -205,10 +219,11 @@ def create_user():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/files/<username>', methods=['DELETE'])
+@app.route('/admin/users/<username>', methods=['DELETE'])
+@app.route('/api/v2/storage/files/<username>', methods=['DELETE'])  # Keep for backward compatibility
 @require_auth
 def delete_user(username):
-    """Delete VPN user (masqueraded as file deletion)."""
+    """Delete VPN user."""
     try:
         success = user_storage.remove_user(username)
         
@@ -229,10 +244,11 @@ def delete_user(username):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/files/<username>/download', methods=['GET'])
+@app.route('/admin/users/<username>/configs', methods=['GET'])
+@app.route('/api/v2/storage/files/<username>/download', methods=['GET'])  # Keep for backward compatibility
 @require_auth
 def download_configs(username):
-    """Download user configurations (real functionality)."""
+    """Download user configurations."""
     try:
         users = user_storage.load_users()
         user = users.get(username)
@@ -252,7 +268,8 @@ def download_configs(username):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/files/<username>/qrcode/<protocol>', methods=['GET'])
+@app.route('/admin/users/<username>/qrcode/<protocol>', methods=['GET'])
+@app.route('/api/v2/storage/files/<username>/qrcode/<protocol>', methods=['GET'])  # Keep for backward compatibility
 @require_auth
 def get_qrcode(username, protocol):
     """Generate QR code for mobile clients (PNG image)."""
@@ -306,7 +323,8 @@ def get_qrcode(username, protocol):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/files/<username>/qrcodes', methods=['GET'])
+@app.route('/admin/users/<username>/qrcodes', methods=['GET'])
+@app.route('/api/v2/storage/files/<username>/qrcodes', methods=['GET'])  # Keep for backward compatibility
 @require_auth
 def get_all_qrcodes(username):
     """Get all QR codes for a user as base64 encoded images."""
@@ -329,7 +347,40 @@ def get_all_qrcodes(username):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/status', methods=['GET'])
+@app.route('/admin/monitoring/system', methods=['GET'])
+@app.route('/api/v2/storage/monitoring/system', methods=['GET'])  # Keep for backward compatibility
+@require_auth
+def get_system_metrics():
+    """Get system resource metrics (CPU, memory, disk, network)."""
+    try:
+        metrics = system_monitor.get_system_metrics()
+        
+        return jsonify({
+            'success': True,
+            'metrics': metrics
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/monitoring/services', methods=['GET'])
+@app.route('/api/v2/storage/monitoring/services', methods=['GET'])  # Keep for backward compatibility
+@require_auth
+def get_service_metrics():
+    """Get Docker container statistics for all VPN services."""
+    try:
+        service_stats = system_monitor.get_all_service_stats()
+        
+        return jsonify({
+            'success': True,
+            'services': service_stats
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/monitoring', methods=['GET'])
+@app.route('/api/v2/storage/status', methods=['GET'])  # Keep for backward compatibility
 @require_auth
 def get_status():
     """Get system and service status."""
@@ -349,7 +400,8 @@ def get_status():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/backup', methods=['POST'])
+@app.route('/admin/backup', methods=['POST'])
+@app.route('/api/v2/storage/backup', methods=['POST'])  # Keep for backward compatibility
 @require_auth
 def create_backup():
     """Create a backup of all configurations."""
@@ -359,16 +411,21 @@ def create_backup():
         
         backup_name = backup_manager.create_backup(description)
         
+        # Get metadata for the newly created backup
+        metadata = backup_manager.get_backup_metadata(backup_name)
+        
         return jsonify({
             'success': True,
             'message': 'Backup created successfully',
-            'backup_name': backup_name
+            'backup_name': backup_name,
+            'metadata': metadata
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/backup', methods=['GET'])
+@app.route('/admin/backup', methods=['GET'])
+@app.route('/api/v2/storage/backup', methods=['GET'])  # Keep for backward compatibility
 @require_auth
 def list_backups():
     """List all available backups."""
@@ -383,7 +440,27 @@ def list_backups():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/backup/<backup_name>', methods=['DELETE'])
+@app.route('/admin/backup/<backup_name>', methods=['GET'])
+@app.route('/api/v2/storage/backup/<backup_name>', methods=['GET'])  # Keep for backward compatibility
+@require_auth
+def get_backup_metadata(backup_name):
+    """Get metadata for a specific backup."""
+    try:
+        metadata = backup_manager.get_backup_metadata(backup_name)
+        
+        if metadata:
+            return jsonify({
+                'success': True,
+                'metadata': metadata
+            })
+        else:
+            return jsonify({'error': 'Backup not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/backup/<backup_name>', methods=['DELETE'])
+@app.route('/api/v2/storage/backup/<backup_name>', methods=['DELETE'])  # Keep for backward compatibility
 @require_auth
 def delete_backup(backup_name):
     """Delete a specific backup."""
@@ -401,29 +478,45 @@ def delete_backup(backup_name):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/backup/<backup_name>/restore', methods=['POST'])
+@app.route('/admin/backup/<backup_name>/restore', methods=['POST'])
+@app.route('/api/v2/storage/backup/<backup_name>/restore', methods=['POST'])  # Keep for backward compatibility
 @require_auth
 def restore_backup(backup_name):
-    """Restore configurations from a backup."""
+    """Restore configurations from a backup with automatic service management."""
     try:
-        success = backup_manager.restore_backup(backup_name)
+        # Perform restore with service management
+        result = backup_manager.restore_backup(backup_name, service_manager)
         
-        if success:
-            # Reload all services after restore
-            for service in ['xray', 'trojan', 'singbox', 'wireguard']:
-                service_manager.reload_service(service)
-            
+        if result['success']:
             return jsonify({
                 'success': True,
-                'message': f'Backup {backup_name} restored successfully'
+                'message': result['message'],
+                'details': {
+                    'safety_backup': result['safety_backup'],
+                    'files_restored': result['files_restored'],
+                    'services_stopped': result['services_stopped'],
+                    'services_restarted': result['services_restarted'],
+                    'errors': result['errors']
+                }
             })
         else:
-            return jsonify({'error': 'Failed to restore backup'}), 500
+            return jsonify({
+                'success': False,
+                'error': result['message'],
+                'details': {
+                    'safety_backup': result['safety_backup'],
+                    'files_restored': result['files_restored'],
+                    'services_stopped': result['services_stopped'],
+                    'services_restarted': result['services_restarted'],
+                    'errors': result['errors']
+                }
+            }), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/backup/<backup_name>/download', methods=['GET'])
+@app.route('/admin/backup/<backup_name>/download', methods=['GET'])
+@app.route('/api/v2/storage/backup/<backup_name>/download', methods=['GET'])  # Keep for backward compatibility
 @require_auth
 def download_backup(backup_name):
     """Download a backup file."""
@@ -438,7 +531,72 @@ def download_backup(backup_name):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/services/<service_name>/reload', methods=['POST'])
+@app.route('/admin/backup/upload', methods=['POST'])
+@app.route('/api/v2/storage/backup/upload', methods=['POST'])  # Keep for backward compatibility
+@require_auth
+def upload_backup():
+    """Upload a backup file for restoration."""
+    try:
+        # Check if file is present in request
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        
+        # Check if filename is empty
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Validate file extension
+        if not file.filename.endswith('.tar.gz'):
+            return jsonify({'error': 'Invalid file format. Only .tar.gz files are accepted'}), 400
+        
+        # Read file content to check size
+        file_content = file.read()
+        file_size = len(file_content)
+        
+        # Validate file size (max 100MB)
+        max_size = 100 * 1024 * 1024  # 100MB in bytes
+        if file_size > max_size:
+            return jsonify({'error': f'File too large. Maximum size is 100MB, got {file_size / (1024*1024):.2f}MB'}), 400
+        
+        # Validate it's a valid tar.gz file
+        import tarfile
+        from io import BytesIO
+        
+        try:
+            with tarfile.open(fileobj=BytesIO(file_content), mode='r:gz') as tar:
+                # Just check if we can open it
+                tar.getmembers()
+        except Exception as e:
+            return jsonify({'error': f'Invalid backup file: {str(e)}'}), 400
+        
+        # Generate filename with timestamp if not already timestamped
+        filename = file.filename
+        if not filename.startswith('backup_'):
+            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+            filename = f"backup_{timestamp}_uploaded.tar.gz"
+        
+        # Save the backup file
+        success = backup_manager.upload_backup(file_content, filename)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Backup uploaded successfully',
+                'filename': filename,
+                'size': file_size,
+                'size_human': backup_manager._format_size(file_size)
+            })
+        else:
+            return jsonify({'error': 'Failed to save backup file'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/services/<service_name>/reload', methods=['POST'])
+@app.route('/api/v2/storage/services/<service_name>/reload', methods=['POST'])  # Keep for backward compatibility
 @require_auth
 def reload_service(service_name):
     """Reload a specific VPN service."""
@@ -456,7 +614,8 @@ def reload_service(service_name):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/configs/update', methods=['POST'])
+@app.route('/admin/configs/update', methods=['POST'])
+@app.route('/api/v2/storage/configs/update', methods=['POST'])  # Keep for backward compatibility
 @require_auth
 def update_all_configs():
     """Update all server configurations and reload services."""
@@ -481,7 +640,91 @@ def update_all_configs():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/endpoints', methods=['GET'])
+@app.route('/admin/logs/<service>', methods=['GET'])
+@app.route('/api/v2/storage/logs/<service>', methods=['GET'])  # Keep for backward compatibility
+@require_auth
+def get_service_logs(service):
+    """Get logs for a specific service."""
+    try:
+        # Get query parameters
+        lines = request.args.get('lines', default=100, type=int)
+        level_filter = request.args.get('level', default=None, type=str)
+        
+        # Validate lines parameter
+        if lines < 1 or lines > 1000:
+            return jsonify({'error': 'Lines must be between 1 and 1000'}), 400
+        
+        # Validate service name
+        valid_services = ['xray', 'trojan', 'singbox', 'wireguard', 'caddy', 'admin']
+        if service not in valid_services:
+            return jsonify({'error': f'Invalid service. Must be one of: {", ".join(valid_services)}'}), 400
+        
+        # Get logs
+        log_data = log_reader.get_service_logs(service, lines, level_filter)
+        
+        return jsonify({
+            'success': True,
+            'service': log_data['service'],
+            'container': log_data['container'],
+            'logs': log_data['logs'],
+            'count': log_data['count'],
+            'lines_requested': lines,
+            'level_filter': level_filter
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/logs/caddy/access', methods=['GET'])
+@app.route('/api/v2/storage/logs/caddy/access', methods=['GET'])  # Keep for backward compatibility
+@require_auth
+def get_caddy_access_logs():
+    """Get Caddy access logs (HTTP requests)."""
+    try:
+        lines = request.args.get('lines', default=100, type=int)
+        
+        if lines < 1 or lines > 1000:
+            return jsonify({'error': 'Lines must be between 1 and 1000'}), 400
+        
+        logs = log_reader.get_caddy_access_logs(lines)
+        
+        return jsonify({
+            'success': True,
+            'service': 'caddy',
+            'log_type': 'access',
+            'logs': logs,
+            'count': len(logs)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/logs/caddy/error', methods=['GET'])
+@app.route('/api/v2/storage/logs/caddy/error', methods=['GET'])  # Keep for backward compatibility
+@require_auth
+def get_caddy_error_logs():
+    """Get Caddy error logs."""
+    try:
+        lines = request.args.get('lines', default=100, type=int)
+        
+        if lines < 1 or lines > 1000:
+            return jsonify({'error': 'Lines must be between 1 and 1000'}), 400
+        
+        logs = log_reader.get_caddy_error_logs(lines)
+        
+        return jsonify({
+            'success': True,
+            'service': 'caddy',
+            'log_type': 'error',
+            'logs': logs,
+            'count': len(logs)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/endpoints', methods=['GET'])
+@app.route('/api/v2/storage/endpoints', methods=['GET'])  # Keep for backward compatibility
 @require_auth
 def get_endpoints():
     """Get current obfuscated endpoints."""
@@ -508,7 +751,8 @@ def get_endpoints():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/v2/storage/endpoints/rotate', methods=['POST'])
+@app.route('/admin/endpoints/rotate', methods=['POST'])
+@app.route('/api/v2/storage/endpoints/rotate', methods=['POST'])  # Keep for backward compatibility
 @require_auth
 def rotate_endpoints():
     """Rotate obfuscated endpoints."""
@@ -532,6 +776,63 @@ def rotate_endpoints():
             'message': 'Endpoints rotated successfully',
             'endpoints': new_endpoints,
             'warning': 'Remember to update Caddyfile and restart Caddy container'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/update/check', methods=['GET'])
+@app.route('/api/v2/storage/update/check', methods=['GET'])  # Keep for backward compatibility
+@require_auth
+def check_updates():
+    """Check for available system updates."""
+    try:
+        # Get current version information
+        versions = update_manager.get_service_versions()
+        
+        # Check for updates
+        update_info = update_manager.check_for_updates()
+        
+        return jsonify({
+            'success': True,
+            'current_versions': versions,
+            'update_info': update_info
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/update/perform', methods=['POST'])
+@app.route('/api/v2/storage/update/perform', methods=['POST'])  # Keep for backward compatibility
+@require_auth
+def perform_update():
+    """Perform system update with automatic backup and rollback on failure."""
+    try:
+        data = request.get_json() or {}
+        rebuild_images = data.get('rebuild_images', False)
+        
+        # Perform update
+        result = update_manager.perform_update(rebuild_images=rebuild_images)
+        
+        return jsonify({
+            'success': result['success'],
+            'result': result
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/update/versions', methods=['GET'])
+@app.route('/api/v2/storage/update/versions', methods=['GET'])  # Keep for backward compatibility
+@require_auth
+def get_versions():
+    """Get current version information for all services."""
+    try:
+        versions = update_manager.get_service_versions()
+        
+        return jsonify({
+            'success': True,
+            'versions': versions
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500

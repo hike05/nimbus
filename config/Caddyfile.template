@@ -1,24 +1,8 @@
 # Global configuration
 {
-    # Automatic HTTPS for all sites
-    auto_https on
-    
     # HTTP/3 support for better QUIC masking
     servers {
-        protocol {
-            experimental_http3
-        }
-    }
-    
-    # Security headers
-    header {
-        # Remove server identification
-        -Server
-        # Security headers
-        X-Content-Type-Options nosniff
-        X-Frame-Options DENY
-        X-XSS-Protection "1; mode=block"
-        Referrer-Policy strict-origin-when-cross-origin
+        protocols h1 h2 h3
     }
 }
 
@@ -94,6 +78,17 @@ DOMAIN_NAME, www.DOMAIN_NAME, api.DOMAIN_NAME, cdn.DOMAIN_NAME, files.DOMAIN_NAM
     
     # HTTP endpoints for main domain
     handle {
+        # Security headers (moved from global config)
+        header {
+            # Remove server identification
+            -Server
+            # Security headers
+            X-Content-Type-Options nosniff
+            X-Frame-Options DENY
+            X-XSS-Protection "1; mode=block"
+            Referrer-Policy strict-origin-when-cross-origin
+        }
+        
         root * /srv
         file_server
         

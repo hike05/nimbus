@@ -37,7 +37,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     logging:
       driver: "json-file"
       options:
@@ -89,11 +89,11 @@ services:
       - stealth-vpn
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "pgrep", "xray"]
+      test: ["CMD", "sh", "-c", "test -f /etc/xray/xray.json && pgrep xray"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     logging:
       driver: "json-file"
       options:
@@ -145,11 +145,11 @@ services:
       - stealth-vpn
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "pgrep", "trojan-go"]
+      test: ["CMD", "sh", "-c", "test -f /etc/trojan-go/trojan.json && pgrep trojan-go"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     logging:
       driver: "json-file"
       options:
@@ -202,11 +202,11 @@ services:
       - stealth-vpn
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "pgrep", "sing-box"]
+      test: ["CMD", "sh", "-c", "test -f /etc/sing-box/singbox.json && pgrep sing-box"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     logging:
       driver: "json-file"
       options:
@@ -277,11 +277,11 @@ services:
       - stealth-vpn
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wg", "show", "wg0"]
+      test: ["CMD", "sh", "-c", "test -d /config && wg show wg0"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     logging:
       driver: "json-file"
       options:
@@ -312,12 +312,16 @@ services:
       dockerfile: Dockerfile
     image: stealth-admin:latest
     container_name: stealth-admin
+    user: "1000:1000"
     volumes:
       - ./data/stealth-vpn:/app/data
-      - ./core:/app/core:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro  # For service management
       - admin_data:/var/lib/admin
+      - ./data/caddy/certificates:/data/caddy/certificates:ro  # For SSL cert backup
+      - ./config/Caddyfile:/etc/caddy/Caddyfile:ro  # For Caddyfile backup
+      - ./docker-compose.yml:/app/docker-compose.yml:ro  # For docker-compose backup
     environment:
+      - PYTHONPATH=/app:/app/core
       - FLASK_ENV=${FLASK_ENV:-production}
       - FLASK_APP=app.py
       - DATA_DIR=/app/data
@@ -336,7 +340,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     logging:
       driver: "json-file"
       options:

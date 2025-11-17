@@ -1,24 +1,8 @@
 # Global configuration
 {
-    # Automatic HTTPS for all sites
-    auto_https on
-    
-    # HTTP/3 support for better QUIC masking
+    # HTTP/3 support
     servers {
-        protocol {
-            experimental_http3
-        }
-    }
-    
-    # Security headers
-    header {
-        # Remove server identification
-        -Server
-        # Security headers
-        X-Content-Type-Options nosniff
-        X-Frame-Options DENY
-        X-XSS-Protection "1; mode=block"
-        Referrer-Policy strict-origin-when-cross-origin
+        protocols h1 h2 h3
     }
 }
 
@@ -94,10 +78,41 @@ your-domain.com, www.your-domain.com, api.your-domain.com, cdn.your-domain.com, 
     
     # HTTP endpoints for main domain
     handle {
+        # Security headers (moved from global config)
+        header {
+            # Remove server identification
+            -Server
+            # Security headers
+            X-Content-Type-Options nosniff
+            X-Frame-Options DENY
+            X-XSS-Protection "1; mode=block"
+            Referrer-Policy strict-origin-when-cross-origin
+        }
+        
         root * /srv
         file_server
         
-        # Admin panel with obfuscated endpoint and rate limiting
+        # Admin panel with clear routes (new)
+        handle /admin* {
+            rate_limit admin
+            reverse_proxy admin:8010 {
+                header_up X-Real-IP {remote_host}
+                header_up X-Forwarded-For {remote_host}
+                header_up X-Forwarded-Proto {scheme}
+            }
+        }
+        
+        # Admin panel with obfuscated endpoint (backward compatibility)
+        handle /api/v2/storage* {
+            rate_limit admin
+            reverse_proxy admin:8010 {
+                header_up X-Real-IP {remote_host}
+                header_up X-Forwarded-For {remote_host}
+                header_up X-Forwarded-Proto {scheme}
+            }
+        }
+        
+        # Legacy obfuscated endpoint (backward compatibility)
         handle /api/v2/cloud/process {
             rate_limit admin
             reverse_proxy admin:8010 {
@@ -178,11 +193,10 @@ your-domain.com, www.your-domain.com, api.your-domain.com, cdn.your-domain.com, 
             respond "404 Not Found" 404
         }
         
-        # Block common vulnerability scanners
+        # Block common vulnerability scanners (excluding /admin for admin panel)
         @blocked_paths {
             path /.env*
             path /wp-admin*
-            path /admin*
             path /phpmyadmin*
             path /.git*
             path /config*

@@ -2,16 +2,31 @@
 
 This document provides a comprehensive checklist for deploying Stealth VPN Server to production.
 
+## Migration from Existing Deployment
+
+If you're upgrading an existing deployment, see the [Migration Guide](docs/MIGRATION_GUIDE.md) for detailed instructions on migrating to the new version with improved configurations.
+
 ## Pre-Deployment Checklist
 
 ### Server Requirements
 
+#### Minimum Requirements (Minimal Mode)
 - [ ] Ubuntu 20.04+ or Debian 11+ server
-- [ ] Minimum 2 CPU cores
-- [ ] Minimum 2GB RAM
+- [ ] **Minimum 1 CPU core** (single-core supported)
+- [ ] **Minimum 1GB RAM** (2GB recommended)
+- [ ] Minimum 10GB disk space
+- [ ] Root or sudo access
+- [ ] Static IP address
+
+#### Recommended Requirements (Full Mode)
+- [ ] Ubuntu 20.04+ or Debian 11+ server
+- [ ] **Recommended 2+ CPU cores**
+- [ ] **Recommended 2GB+ RAM**
 - [ ] Minimum 20GB disk space
 - [ ] Root or sudo access
 - [ ] Static IP address
+
+**Note:** Single-core servers are supported but should use **Minimal Mode** for initial deployment. See [Deployment Modes](docs/DEPLOYMENT_MODES.md) for details.
 
 ### Domain & DNS
 
@@ -35,6 +50,26 @@ This document provides a comprehensive checklist for deploying Stealth VPN Serve
 - [ ] Non-root user with sudo access created
 - [ ] Fail2ban or similar intrusion prevention installed
 - [ ] System packages updated (`apt update && apt upgrade`)
+
+## Deployment Modes
+
+The system supports two deployment modes:
+
+### Minimal Mode (Recommended for First-Time Setup)
+- Deploys only Caddy and Admin Panel
+- Faster startup, easier troubleshooting
+- Ideal for verifying SSL certificates and domain configuration
+- **Best for single-core servers**
+- Resource usage: ~0.5 CPU, ~512MB RAM
+
+### Full Mode (Complete VPN Deployment)
+- Deploys all services including VPN protocols
+- Requires more resources
+- Recommended after verifying minimal mode works
+- **Requires 2+ CPU cores for optimal performance**
+- Resource usage: ~2 CPU, ~2GB RAM
+
+**Recommendation:** Always start with Minimal Mode, verify SSL and basic functionality, then transition to Full Mode. See [Deployment Modes Guide](docs/DEPLOYMENT_MODES.md) for detailed instructions.
 
 ## Installation Steps
 
@@ -63,10 +98,15 @@ chmod +x install.sh
 ./install.sh
 ```
 
-During installation, provide:
-- [ ] Domain name entered correctly
-- [ ] Valid email address for SSL certificates
-- [ ] Strong admin password set
+During installation, you will be prompted to:
+- [ ] Select deployment mode (Minimal or Full)
+- [ ] Enter domain name correctly
+- [ ] Provide valid email address for SSL certificates
+- [ ] Set strong admin password
+- [ ] Confirm installation settings
+
+**For first-time deployment:** Select **Minimal Mode (option 1)**
+
 - [ ] Installation completed without errors
 
 ### 3. Verify Configuration
@@ -87,6 +127,27 @@ grep -E "DOMAIN|ADMIN_PASSWORD_HASH|SESSION_SECRET" .env
 
 ### 4. Build and Start Services
 
+#### For Minimal Mode:
+```bash
+# Build Docker images
+docker compose -f docker-compose.minimal.yml build
+
+# Start services
+docker compose -f docker-compose.minimal.yml up -d
+
+# Wait for services to be healthy
+sleep 30
+
+# Check status
+docker compose -f docker-compose.minimal.yml ps
+```
+
+- [ ] Caddy and Admin images built successfully
+- [ ] Services started
+- [ ] Both services show as "healthy"
+- [ ] No error messages in logs
+
+#### For Full Mode:
 ```bash
 # Build Docker images
 docker compose build
@@ -94,8 +155,8 @@ docker compose build
 # Start services
 docker compose up -d
 
-# Wait for services to be healthy
-sleep 30
+# Wait for services to be healthy (longer for full mode)
+sleep 60
 
 # Check status
 docker compose ps
@@ -120,6 +181,57 @@ curl -I https://your-domain.com
 - [ ] HTTPS responds with 200 OK
 - [ ] No certificate warnings
 - [ ] HTTP redirects to HTTPS
+
+## Transitioning from Minimal to Full Mode
+
+After verifying that Minimal Mode works correctly (SSL certificates obtained, Admin Panel accessible), you can transition to Full Mode to enable all VPN protocols.
+
+### Prerequisites
+
+Before transitioning:
+- [ ] Minimal mode is running successfully
+- [ ] SSL certificates obtained (check Caddy logs)
+- [ ] Admin Panel accessible at `https://your-domain.com/api/v2/storage/upload`
+- [ ] No errors in logs
+- [ ] Server has adequate resources (2+ CPU cores, 2GB+ RAM recommended)
+
+### Transition Steps
+
+```bash
+# 1. Stop minimal services
+docker compose -f docker-compose.minimal.yml down
+
+# 2. Start full deployment
+docker compose up -d
+
+# 3. Wait for all services to be healthy
+sleep 60
+
+# 4. Verify all services are running
+docker compose ps
+
+# 5. Run health check
+./scripts/health-check.sh
+```
+
+### Verification After Transition
+
+- [ ] All 6 services running (Caddy, Admin, Xray, Trojan, Sing-box, WireGuard)
+- [ ] All services show "healthy" status
+- [ ] SSL certificates preserved (no re-acquisition needed)
+- [ ] Admin Panel still accessible
+- [ ] VPN configurations generated successfully
+
+### Data Preservation
+
+The following data is automatically preserved during transition:
+- ✅ SSL certificates
+- ✅ User accounts
+- ✅ Configuration files
+- ✅ Environment variables
+- ✅ Docker volumes
+
+**Note:** See [Deployment Modes Guide](docs/DEPLOYMENT_MODES.md) for detailed transition instructions and troubleshooting.
 
 ## Post-Deployment Verification
 
@@ -445,7 +557,9 @@ If deployment fails:
 
 ## Support Resources
 
-- **Documentation**: `docs/` directory
+- **Troubleshooting Guide**: `TROUBLESHOOTING.md` - Common errors and solutions
+- **Deployment Modes**: `docs/DEPLOYMENT_MODES.md` - Minimal vs Full mode details
+- **Docker Orchestration**: `docs/DOCKER_ORCHESTRATION.md` - Container management
 - **Quick Start**: `QUICKSTART.md`
 - **Health Checks**: `./scripts/health-check.sh`
 - **Service Manager**: `./scripts/service-manager.sh`

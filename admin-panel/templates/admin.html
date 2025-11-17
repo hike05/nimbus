@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}File Management - Private Cloud Storage{% endblock %}
+{% block title %}VPN Admin Panel{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-md-12">
-        <h2><i class="bi bi-folder2-open"></i> File Management</h2>
-        <p class="text-muted">Manage your cloud storage files and configurations</p>
+        <h2><i class="bi bi-shield-lock"></i> VPN Server Administration</h2>
+        <p class="text-muted">Manage VPN users, configurations, and system monitoring</p>
     </div>
 </div>
 
@@ -16,7 +16,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <i class="bi bi-hdd-network" style="font-size: 2rem; color: #0d6efd;"></i>
-                <h5 class="card-title mt-2">Services</h5>
+                <h5 class="card-title mt-2">VPN Services</h5>
                 <h3 id="service-count">-</h3>
                 <small class="text-muted">Active</small>
             </div>
@@ -25,10 +25,10 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <i class="bi bi-file-earmark" style="font-size: 2rem; color: #198754;"></i>
-                <h5 class="card-title mt-2">Total Files</h5>
+                <i class="bi bi-people" style="font-size: 2rem; color: #198754;"></i>
+                <h5 class="card-title mt-2">Total Users</h5>
                 <h3 id="total-users">-</h3>
-                <small class="text-muted">Stored</small>
+                <small class="text-muted">Registered</small>
             </div>
         </div>
     </div>
@@ -36,9 +36,9 @@
         <div class="card text-center">
             <div class="card-body">
                 <i class="bi bi-check-circle" style="font-size: 2rem; color: #20c997;"></i>
-                <h5 class="card-title mt-2">Active</h5>
+                <h5 class="card-title mt-2">Active Users</h5>
                 <h3 id="active-users">-</h3>
-                <small class="text-muted">Files</small>
+                <small class="text-muted">Connected</small>
             </div>
         </div>
     </div>
@@ -46,9 +46,9 @@
         <div class="card text-center">
             <div class="card-body">
                 <i class="bi bi-server" style="font-size: 2rem; color: #6c757d;"></i>
-                <h5 class="card-title mt-2">Server</h5>
+                <h5 class="card-title mt-2">Server Domain</h5>
                 <h3 class="text-success">{{ domain }}</h3>
-                <small class="text-muted">Domain</small>
+                <small class="text-muted">Endpoint</small>
             </div>
         </div>
     </div>
@@ -57,26 +57,113 @@
 <!-- Alert Messages -->
 <div id="alert-container"></div>
 
-<!-- Configuration Management Section -->
+<!-- System Monitoring Dashboard -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-speedometer2"></i> System Monitoring</h5>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="auto-refresh-toggle" checked>
+            <label class="form-check-label" for="auto-refresh-toggle">Auto-refresh (5s)</label>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- System Metrics Row -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="bi bi-cpu" style="font-size: 1.5rem; color: #0d6efd;"></i>
+                        <h6 class="mt-2">CPU Usage</h6>
+                        <h4 id="cpu-usage">-</h4>
+                        <div class="progress" style="height: 5px;">
+                            <div id="cpu-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="bi bi-memory" style="font-size: 1.5rem; color: #198754;"></i>
+                        <h6 class="mt-2">Memory Usage</h6>
+                        <h4 id="memory-usage">-</h4>
+                        <div class="progress" style="height: 5px;">
+                            <div id="memory-progress" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="bi bi-hdd" style="font-size: 1.5rem; color: #ffc107;"></i>
+                        <h6 class="mt-2">Disk Usage</h6>
+                        <h4 id="disk-usage">-</h4>
+                        <div class="progress" style="height: 5px;">
+                            <div id="disk-progress" class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="bi bi-arrow-down-up" style="font-size: 1.5rem; color: #6c757d;"></i>
+                        <h6 class="mt-2">Network I/O</h6>
+                        <small class="text-muted">RX: <span id="network-rx">-</span></small><br>
+                        <small class="text-muted">TX: <span id="network-tx">-</span></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Service Status Table -->
+        <h6 class="mb-2"><i class="bi bi-hdd-network"></i> Service Status</h6>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Status</th>
+                        <th>CPU</th>
+                        <th>Memory</th>
+                        <th>Network RX/TX</th>
+                    </tr>
+                </thead>
+                <tbody id="service-stats-table">
+                    <tr>
+                        <td colspan="5" class="text-center">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Section -->
 <div class="card mb-4">
     <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-gear"></i> Configuration Management</h5>
+        <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
     </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-4">
-                <button class="btn btn-success w-100" onclick="createBackup()">
+                <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#createBackupModal">
                     <i class="bi bi-archive"></i> Create Backup
                 </button>
             </div>
             <div class="col-md-4">
                 <button class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#backupModal">
-                    <i class="bi bi-clock-history"></i> View Backups
+                    <i class="bi bi-clock-history"></i> Manage Backups
                 </button>
             </div>
             <div class="col-md-4">
                 <button class="btn btn-warning w-100" onclick="updateAllConfigs()">
-                    <i class="bi bi-arrow-repeat"></i> Reload All Services
+                    <i class="bi bi-arrow-repeat"></i> Reload Services
                 </button>
             </div>
         </div>
@@ -86,9 +173,9 @@
 <!-- User Management Section -->
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-files"></i> Files</h5>
+        <h5 class="mb-0"><i class="bi bi-people"></i> VPN Users</h5>
         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
-            <i class="bi bi-plus-circle"></i> Upload New File
+            <i class="bi bi-plus-circle"></i> Add New User
         </button>
     </div>
     <div class="card-body">
@@ -96,9 +183,9 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Filename</th>
+                        <th>Username</th>
                         <th>Created</th>
-                        <th>Last Access</th>
+                        <th>Last Seen</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -117,20 +204,174 @@
     </div>
 </div>
 
+<!-- Log Viewer Section -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-file-text"></i> Service Logs</h5>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="log-auto-refresh-toggle">
+            <label class="form-check-label" for="log-auto-refresh-toggle">Auto-refresh (5s)</label>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="log-service-select" class="form-label">Service</label>
+                <select class="form-select" id="log-service-select" onchange="loadServiceLogs()">
+                    <option value="xray">Xray</option>
+                    <option value="trojan">Trojan-Go</option>
+                    <option value="singbox">Sing-box</option>
+                    <option value="wireguard">WireGuard</option>
+                    <option value="caddy">Caddy (All)</option>
+                    <option value="caddy-access">Caddy (Access)</option>
+                    <option value="caddy-error">Caddy (Error)</option>
+                    <option value="admin">Admin Panel</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="log-level-select" class="form-label">Log Level</label>
+                <select class="form-select" id="log-level-select" onchange="loadServiceLogs()">
+                    <option value="">All Levels</option>
+                    <option value="INFO">INFO</option>
+                    <option value="WARNING">WARNING</option>
+                    <option value="ERROR">ERROR</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="log-lines-select" class="form-label">Lines</label>
+                <select class="form-select" id="log-lines-select" onchange="loadServiceLogs()">
+                    <option value="50">50</option>
+                    <option value="100" selected>100</option>
+                    <option value="200">200</option>
+                    <option value="500">500</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button class="btn btn-primary w-100" onclick="loadServiceLogs()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+        </div>
+        
+        <div id="log-viewer-container" style="max-height: 500px; overflow-y: auto; background-color: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 5px; font-family: 'Courier New', monospace; font-size: 0.85rem;">
+            <div class="text-center text-light">
+                <i class="bi bi-file-text"></i> Select a service to view logs
+            </div>
+        </div>
+        
+        <div class="mt-2">
+            <small class="text-muted">
+                <i class="bi bi-info-circle"></i> 
+                Logs are read from Docker containers in real-time. 
+                Use filters to narrow down specific issues.
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- System Update Section -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-arrow-repeat"></i> System Update</h5>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> 
+                    <strong>Update Process:</strong> The system will automatically create a backup before updating. 
+                    If any critical service fails to restart, the system will automatically rollback to the backup.
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <button class="btn btn-primary w-100" onclick="checkForUpdates()">
+                    <i class="bi bi-search"></i> Check for Updates
+                </button>
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-success w-100" onclick="performUpdate(false)">
+                    <i class="bi bi-download"></i> Pull Latest Images
+                </button>
+            </div>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <button class="btn btn-warning w-100" onclick="performUpdate(true)">
+                    <i class="bi bi-hammer"></i> Rebuild Custom Images & Update
+                </button>
+                <small class="text-muted d-block mt-1">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    This will rebuild Xray, Trojan, Sing-box, WireGuard, and Admin images from source. Takes 5-10 minutes.
+                </small>
+            </div>
+        </div>
+        
+        <!-- Current Versions -->
+        <div class="card bg-light">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Current Service Versions</h6>
+            </div>
+            <div class="card-body">
+                <div id="version-info">
+                    <div class="text-center">
+                        <small class="text-muted">Click "Check for Updates" to view version information</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Update Progress -->
+        <div id="update-progress-container" class="mt-3" style="display: none;">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="bi bi-hourglass-split"></i> Update in Progress</h6>
+                </div>
+                <div class="card-body">
+                    <div id="update-progress-content">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Updating...</span>
+                            </div>
+                            <p class="mt-2">Please wait while the system is being updated...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Update Results -->
+        <div id="update-results-container" class="mt-3" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-clipboard-check"></i> Update Results</h6>
+                </div>
+                <div class="card-body">
+                    <div id="update-results-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Add User Modal -->
 <div class="modal fade" id="addUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Upload New File</h5>
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Add New VPN User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="add-user-form">
                     <div class="mb-3">
-                        <label for="new-username" class="form-label">Filename</label>
+                        <label for="new-username" class="form-label">Username</label>
                         <input type="text" class="form-control" id="new-username" required 
-                               placeholder="Enter filename (e.g., user1)">
+                               placeholder="Enter username (e.g., alice, bob)">
                         <div class="form-text">Alphanumeric characters and hyphens only</div>
                     </div>
                 </form>
@@ -138,7 +379,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="createUser()">
-                    <i class="bi bi-upload"></i> Upload
+                    <i class="bi bi-person-plus"></i> Create User
                 </button>
             </div>
         </div>
@@ -150,7 +391,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-file-code"></i> Configuration Files</h5>
+                <h5 class="modal-title"><i class="bi bi-file-code"></i> VPN Client Configurations</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -166,19 +407,99 @@
     </div>
 </div>
 
-<!-- Backup Modal -->
+<!-- Create Backup Modal -->
+<div class="modal fade" id="createBackupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-archive"></i> Create Backup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="backupDescription" class="form-label">Description (optional)</label>
+                    <input type="text" class="form-control" id="backupDescription" 
+                           placeholder="e.g., Before major update, Weekly backup, etc.">
+                    <div class="form-text">Add a description to help identify this backup later</div>
+                </div>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> 
+                    This backup will include:
+                    <ul class="mb-0 mt-2">
+                        <li>User configurations</li>
+                        <li>VPN server configs (Xray, Trojan, Sing-box, WireGuard)</li>
+                        <li>Client configurations</li>
+                        <li>SSL certificates (if accessible)</li>
+                        <li>Caddyfile (if accessible)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="confirmCreateBackup()">
+                    <i class="bi bi-archive"></i> Create Backup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Backup Management Modal -->
 <div class="modal fade" id="backupModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="bi bi-clock-history"></i> Backup Management</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div id="backup-list">
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                <!-- Upload Backup Section -->
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="bi bi-upload"></i> Upload Backup</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <input type="file" class="form-control" id="backup-file-input" accept=".tar.gz" onchange="handleBackupFileSelect(event)">
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i> 
+                                    Select a .tar.gz backup file (max 100MB)
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-primary w-100" id="upload-backup-btn" onclick="uploadBackup()" disabled>
+                                    <i class="bi bi-upload"></i> Upload Backup
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Upload Progress -->
+                        <div id="upload-progress-container" class="mt-3" style="display: none;">
+                            <div class="progress">
+                                <div id="upload-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" style="width: 0%">0%</div>
+                            </div>
+                            <small class="text-muted mt-1 d-block" id="upload-status-text">Uploading...</small>
+                        </div>
+                        
+                        <!-- Upload Result -->
+                        <div id="upload-result-container" class="mt-3" style="display: none;"></div>
+                    </div>
+                </div>
+                
+                <!-- Existing Backups List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-archive"></i> Existing Backups</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="backup-list">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -196,10 +517,135 @@ let currentUsers = [];
 document.addEventListener('DOMContentLoaded', function() {
     loadStatus();
     loadUsers();
+    loadSystemMetrics();
+    loadServiceMetrics();
     
     // Refresh every 30 seconds
     setInterval(loadStatus, 30000);
+    
+    // Auto-refresh monitoring every 5 seconds if enabled
+    setInterval(() => {
+        if (document.getElementById('auto-refresh-toggle').checked) {
+            loadSystemMetrics();
+            loadServiceMetrics();
+        }
+    }, 5000);
+    
+    // Auto-refresh logs every 5 seconds if enabled
+    setInterval(() => {
+        if (document.getElementById('log-auto-refresh-toggle').checked) {
+            loadServiceLogs();
+        }
+    }, 5000);
 });
+
+function loadSystemMetrics() {
+    fetch('/admin/monitoring/system')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const metrics = data.metrics;
+                
+                // Update CPU
+                const cpuPercent = metrics.cpu.toFixed(1);
+                document.getElementById('cpu-usage').textContent = cpuPercent + '%';
+                document.getElementById('cpu-progress').style.width = cpuPercent + '%';
+                document.getElementById('cpu-progress').className = 'progress-bar ' + getProgressColor(cpuPercent);
+                
+                // Update Memory
+                const memPercent = metrics.memory.percent.toFixed(1);
+                const memUsed = formatBytes(metrics.memory.used);
+                const memTotal = formatBytes(metrics.memory.total);
+                document.getElementById('memory-usage').textContent = memPercent + '%';
+                document.getElementById('memory-progress').style.width = memPercent + '%';
+                document.getElementById('memory-progress').className = 'progress-bar ' + getProgressColor(memPercent);
+                
+                // Update Disk
+                const diskPercent = metrics.disk.percent.toFixed(1);
+                const diskUsed = formatBytes(metrics.disk.used);
+                const diskTotal = formatBytes(metrics.disk.total);
+                document.getElementById('disk-usage').textContent = diskPercent + '%';
+                document.getElementById('disk-progress').style.width = diskPercent + '%';
+                document.getElementById('disk-progress').className = 'progress-bar ' + getProgressColor(diskPercent);
+                
+                // Update Network
+                document.getElementById('network-rx').textContent = formatBytes(metrics.network.bytes_recv);
+                document.getElementById('network-tx').textContent = formatBytes(metrics.network.bytes_sent);
+            }
+        })
+        .catch(error => console.error('Error loading system metrics:', error));
+}
+
+function loadServiceMetrics() {
+    fetch('/admin/monitoring/services')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderServiceStats(data.services);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading service metrics:', error);
+            document.getElementById('service-stats-table').innerHTML = `
+                <tr><td colspan="5" class="text-center text-danger">Error loading service metrics</td></tr>
+            `;
+        });
+}
+
+function renderServiceStats(services) {
+    const tbody = document.getElementById('service-stats-table');
+    const serviceNames = ['caddy', 'xray', 'trojan', 'singbox', 'wireguard', 'admin'];
+    
+    tbody.innerHTML = serviceNames.map(serviceName => {
+        const stats = services[serviceName];
+        
+        if (!stats || stats.error) {
+            return `
+                <tr>
+                    <td><i class="bi bi-hdd-network"></i> ${serviceName}</td>
+                    <td><span class="badge bg-secondary">Not Found</span></td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+            `;
+        }
+        
+        const statusBadge = getStatusBadge(stats.status);
+        const cpuText = stats.cpu_percent !== undefined ? stats.cpu_percent.toFixed(1) + '%' : '-';
+        const memText = stats.memory_usage !== undefined ? formatBytes(stats.memory_usage) : '-';
+        const netText = stats.network_rx !== undefined ? 
+            `${formatBytes(stats.network_rx)} / ${formatBytes(stats.network_tx)}` : '-';
+        
+        return `
+            <tr>
+                <td><i class="bi bi-hdd-network"></i> ${serviceName}</td>
+                <td>${statusBadge}</td>
+                <td>${cpuText}</td>
+                <td>${memText}</td>
+                <td><small>${netText}</small></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function getStatusBadge(status) {
+    const statusMap = {
+        'running': '<span class="badge bg-success">Running</span>',
+        'exited': '<span class="badge bg-danger">Stopped</span>',
+        'restarting': '<span class="badge bg-warning">Restarting</span>',
+        'paused': '<span class="badge bg-secondary">Paused</span>',
+        'not_found': '<span class="badge bg-secondary">Not Found</span>',
+        'error': '<span class="badge bg-danger">Error</span>'
+    };
+    return statusMap[status] || '<span class="badge bg-secondary">Unknown</span>';
+}
+
+function getProgressColor(percent) {
+    if (percent < 60) return 'bg-success';
+    if (percent < 80) return 'bg-warning';
+    return 'bg-danger';
+}
 
 function showAlert(message, type = 'success') {
     const alertHtml = `
@@ -221,7 +667,7 @@ function showAlert(message, type = 'success') {
 }
 
 function loadStatus() {
-    fetch('/api/v2/storage/status')
+    fetch('/admin/monitoring')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -235,7 +681,7 @@ function loadStatus() {
 }
 
 function loadUsers() {
-    fetch('/api/v2/storage/files')
+    fetch('/admin/users')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -246,7 +692,7 @@ function loadUsers() {
         .catch(error => {
             console.error('Error loading users:', error);
             document.getElementById('users-table').innerHTML = `
-                <tr><td colspan="5" class="text-center text-danger">Error loading files</td></tr>
+                <tr><td colspan="5" class="text-center text-danger">Error loading users</td></tr>
             `;
         });
 }
@@ -255,13 +701,13 @@ function renderUsersTable() {
     const tbody = document.getElementById('users-table');
     
     if (currentUsers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No files uploaded yet</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No VPN users created yet</td></tr>';
         return;
     }
     
     tbody.innerHTML = currentUsers.map(user => `
         <tr>
-            <td><i class="bi bi-file-earmark-text"></i> ${user.username}</td>
+            <td><i class="bi bi-person"></i> ${user.username}</td>
             <td>${formatDate(user.created_at)}</td>
             <td>${user.last_seen ? formatDate(user.last_seen) : '<span class="text-muted">Never</span>'}</td>
             <td>
@@ -291,11 +737,11 @@ function createUser() {
     const username = document.getElementById('new-username').value.trim();
     
     if (!username) {
-        showAlert('Please enter a filename', 'danger');
+        showAlert('Please enter a username', 'danger');
         return;
     }
     
-    fetch('/api/v2/storage/files', {
+    fetch('/admin/users', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -320,11 +766,11 @@ function createUser() {
 }
 
 function deleteUser(username) {
-    if (!confirm(`Are you sure you want to delete file "${username}"? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete VPN user "${username}"? This action cannot be undone.`)) {
         return;
     }
     
-    fetch(`/api/v2/storage/files/${username}`, {
+    fetch(`/admin/users/${username}`, {
         method: 'DELETE'
     })
     .then(response => response.json())
@@ -354,7 +800,7 @@ function viewConfigs(username) {
         </div>
     `;
     
-    fetch(`/api/v2/storage/files/${username}/download`)
+    fetch(`/admin/users/${username}/configs`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -374,7 +820,7 @@ function viewConfigs(username) {
 
 function renderConfigs(username, configs) {
     const configHtml = `
-        <h6 class="mb-3">Configuration Files for: <strong>${username}</strong></h6>
+        <h6 class="mb-3">VPN Configurations for User: <strong>${username}</strong></h6>
         
         <ul class="nav nav-tabs" role="tablist">
             <li class="nav-item">
@@ -490,29 +936,29 @@ function renderConfigs(username, configs) {
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <h6><i class="bi bi-qr-code"></i> Xray XTLS-Vision</h6>
-                        <img src="/api/v2/storage/files/${username}/qrcode/xray-xtls" class="img-fluid border rounded" alt="Xray XTLS QR">
+                        <img src="/admin/users/${username}/qrcode/xray-xtls" class="img-fluid border rounded" alt="Xray XTLS QR">
                         <small class="text-muted d-block mt-1">Best for desktop</small>
                     </div>
                     <div class="col-md-6 mb-3">
                         <h6><i class="bi bi-qr-code"></i> Xray WebSocket</h6>
-                        <img src="/api/v2/storage/files/${username}/qrcode/xray-ws" class="img-fluid border rounded" alt="Xray WS QR">
+                        <img src="/admin/users/${username}/qrcode/xray-ws" class="img-fluid border rounded" alt="Xray WS QR">
                         <small class="text-muted d-block mt-1">Fallback option</small>
                     </div>
                     <div class="col-md-6 mb-3">
                         <h6><i class="bi bi-qr-code"></i> Trojan-Go</h6>
-                        <img src="/api/v2/storage/files/${username}/qrcode/trojan" class="img-fluid border rounded" alt="Trojan QR">
+                        <img src="/admin/users/${username}/qrcode/trojan" class="img-fluid border rounded" alt="Trojan QR">
                         <small class="text-muted d-block mt-1">Alternative protocol</small>
                     </div>
                     ${configs.hysteria2_link ? `
                     <div class="col-md-6 mb-3">
                         <h6><i class="bi bi-qr-code"></i> Hysteria2</h6>
-                        <img src="/api/v2/storage/files/${username}/qrcode/hysteria2" class="img-fluid border rounded" alt="Hysteria2 QR">
+                        <img src="/admin/users/${username}/qrcode/hysteria2" class="img-fluid border rounded" alt="Hysteria2 QR">
                         <small class="text-muted d-block mt-1">High speed UDP</small>
                     </div>
                     ` : ''}
                     <div class="col-md-6 mb-3">
                         <h6><i class="bi bi-qr-code"></i> WireGuard</h6>
-                        <img src="/api/v2/storage/files/${username}/qrcode/wireguard" class="img-fluid border rounded" alt="WireGuard QR">
+                        <img src="/admin/users/${username}/qrcode/wireguard" class="img-fluid border rounded" alt="WireGuard QR">
                         <small class="text-muted d-block mt-1">Simple & fast</small>
                     </div>
                 </div>
@@ -544,22 +990,39 @@ function downloadConfig(username, protocol) {
     window.location.href = `/api/v2/storage/files/${username}/download?protocol=${protocol}`;
 }
 
-function createBackup() {
-    if (!confirm('Create a backup of all configurations?')) {
-        return;
-    }
+function confirmCreateBackup() {
+    const description = document.getElementById('backupDescription').value.trim() || 'Manual backup';
     
-    fetch('/api/v2/storage/backup', {
+    // Close the modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createBackupModal'));
+    modal.hide();
+    
+    // Show loading indicator
+    showAlert('Creating backup...', 'info');
+    
+    fetch('/admin/backup', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ description: 'Manual backup' })
+        body: JSON.stringify({ description: description })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showAlert('Backup created successfully: ' + data.backup_name, 'success');
+            const metadata = data.metadata || {};
+            const items = metadata.included_items || [];
+            const size = metadata.size_human || formatBytes(metadata.size || 0);
+            
+            showAlert(
+                `Backup created successfully: ${data.backup_name}<br>` +
+                `Size: ${size}<br>` +
+                `Included: ${items.join(', ')}`,
+                'success'
+            );
+            
+            // Clear the description field
+            document.getElementById('backupDescription').value = '';
         } else {
             showAlert(data.error, 'danger');
         }
@@ -569,12 +1032,19 @@ function createBackup() {
     });
 }
 
+// Legacy function for backward compatibility
+function createBackup() {
+    document.getElementById('backupDescription').value = 'Manual backup';
+    const modal = new bootstrap.Modal(document.getElementById('createBackupModal'));
+    modal.show();
+}
+
 function updateAllConfigs() {
     if (!confirm('Update all server configurations and reload services? This may cause brief disconnections.')) {
         return;
     }
     
-    fetch('/api/v2/storage/configs/update', {
+    fetch('/admin/configs/update', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -608,7 +1078,7 @@ function loadBackups() {
         </div>
     `;
     
-    fetch('/api/v2/storage/backup')
+    fetch('/admin/backup')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -641,15 +1111,36 @@ function renderBackups(backups) {
                     <th>Timestamp</th>
                     <th>Description</th>
                     <th>Size</th>
+                    <th>Version</th>
+                    <th>Included Items</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                ${backups.map(backup => `
+                ${backups.map(backup => {
+                    const items = backup.included_items || [];
+                    const itemsDisplay = items.length > 0 
+                        ? `<small class="text-muted">${items.slice(0, 3).join(', ')}${items.length > 3 ? '...' : ''}</small>`
+                        : '<small class="text-muted">Legacy backup</small>';
+                    const sizeDisplay = backup.size_human || formatBytes(backup.size || 0);
+                    const version = backup.version || '1.0';
+                    const versionBadge = version === '2.0' 
+                        ? '<span class="badge bg-success">v2.0</span>' 
+                        : '<span class="badge bg-secondary">v1.0</span>';
+                    
+                    return `
                     <tr>
-                        <td>${formatDate(backup.timestamp)}</td>
+                        <td>
+                            <div>${formatDate(backup.timestamp)}</div>
+                            <small class="text-muted">${backup.created_at || ''}</small>
+                        </td>
                         <td>${backup.description || '-'}</td>
-                        <td>${formatBytes(backup.size)}</td>
+                        <td>${sizeDisplay}</td>
+                        <td>${versionBadge}</td>
+                        <td>
+                            <div>${itemsDisplay}</div>
+                            ${items.length > 3 ? `<small class="text-muted" title="${items.join(', ')}">(${items.length} items total)</small>` : ''}
+                        </td>
                         <td>
                             <button class="btn btn-sm btn-success" onclick="restoreBackup('${backup.filename}')" title="Restore">
                                 <i class="bi bi-arrow-counterclockwise"></i>
@@ -662,7 +1153,8 @@ function renderBackups(backups) {
                             </button>
                         </td>
                     </tr>
-                `).join('')}
+                    `;
+                }).join('')}
             </tbody>
         </table>
     `;
@@ -679,11 +1171,30 @@ function formatBytes(bytes) {
 }
 
 function restoreBackup(filename) {
-    if (!confirm(`Restore backup "${filename}"? This will overwrite current configurations.`)) {
+    // Enhanced confirmation dialog with warning
+    const confirmMsg = `⚠️ RESTORE BACKUP WARNING ⚠️\n\n` +
+        `You are about to restore backup: "${filename}"\n\n` +
+        `This will:\n` +
+        `• Stop all VPN services temporarily\n` +
+        `• Overwrite current configurations\n` +
+        `• Create a safety backup before restoring\n` +
+        `• Restart all services after restore\n` +
+        `• Automatically rollback if critical services fail\n\n` +
+        `This may cause brief disconnections for active users.\n\n` +
+        `Are you sure you want to continue?`;
+    
+    if (!confirm(confirmMsg)) {
         return;
     }
     
-    fetch(`/api/v2/storage/backup/${filename}/restore`, {
+    // Show progress indicator
+    showAlert('Restoring backup... This may take a minute.', 'info');
+    
+    // Disable the restore button temporarily
+    const restoreButtons = document.querySelectorAll('button[onclick*="restoreBackup"]');
+    restoreButtons.forEach(btn => btn.disabled = true);
+    
+    fetch(`/admin/backup/${filename}/restore`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -691,22 +1202,72 @@ function restoreBackup(filename) {
     })
     .then(response => response.json())
     .then(data => {
+        // Re-enable buttons
+        restoreButtons.forEach(btn => btn.disabled = false);
+        
         if (data.success) {
-            showAlert(data.message, 'success');
+            // Show detailed success message
+            let message = data.message;
+            
+            if (data.details) {
+                const details = data.details;
+                message += '<br><br><strong>Details:</strong><ul class="mb-0 mt-2">';
+                
+                if (details.files_restored && details.files_restored.length > 0) {
+                    message += `<li>Restored ${details.files_restored.length} items</li>`;
+                }
+                
+                if (details.services_stopped && details.services_stopped.length > 0) {
+                    message += `<li>Stopped services: ${details.services_stopped.join(', ')}</li>`;
+                }
+                
+                if (details.services_restarted && details.services_restarted.length > 0) {
+                    message += `<li>Restarted services: ${details.services_restarted.join(', ')}</li>`;
+                }
+                
+                if (details.safety_backup) {
+                    message += `<li>Safety backup: ${details.safety_backup}</li>`;
+                }
+                
+                if (details.errors && details.errors.length > 0) {
+                    message += `<li class="text-warning">Warnings: ${details.errors.length}</li>`;
+                }
+                
+                message += '</ul>';
+            }
+            
+            showAlert(message, 'success');
             bootstrap.Modal.getInstance(document.getElementById('backupModal')).hide();
+            
+            // Reload data
             loadUsers();
             loadStatus();
+            loadSystemMetrics();
+            loadServiceMetrics();
         } else {
-            showAlert(data.error, 'danger');
+            // Show detailed error message
+            let errorMsg = data.error || 'Failed to restore backup';
+            
+            if (data.details && data.details.errors && data.details.errors.length > 0) {
+                errorMsg += '<br><br><strong>Errors:</strong><ul class="mb-0 mt-2">';
+                data.details.errors.forEach(err => {
+                    errorMsg += `<li>${err}</li>`;
+                });
+                errorMsg += '</ul>';
+            }
+            
+            showAlert(errorMsg, 'danger');
         }
     })
     .catch(error => {
+        // Re-enable buttons
+        restoreButtons.forEach(btn => btn.disabled = false);
         showAlert('Error restoring backup: ' + error.message, 'danger');
     });
 }
 
 function downloadBackup(filename) {
-    window.location.href = `/api/v2/storage/backup/${filename}/download`;
+    window.location.href = `/admin/backup/${filename}/download`;
 }
 
 function deleteBackupFile(filename) {
@@ -714,7 +1275,7 @@ function deleteBackupFile(filename) {
         return;
     }
     
-    fetch(`/api/v2/storage/backup/${filename}`, {
+    fetch(`/admin/backup/${filename}`, {
         method: 'DELETE'
     })
     .then(response => response.json())
@@ -729,6 +1290,640 @@ function deleteBackupFile(filename) {
     .catch(error => {
         showAlert('Error deleting backup: ' + error.message, 'danger');
     });
+}
+
+// Log Viewer Functions
+function loadServiceLogs() {
+    const service = document.getElementById('log-service-select').value;
+    const level = document.getElementById('log-level-select').value;
+    const lines = document.getElementById('log-lines-select').value;
+    const container = document.getElementById('log-viewer-container');
+    
+    // Show loading indicator
+    container.innerHTML = `
+        <div class="text-center text-light">
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="ms-2">Loading logs...</span>
+        </div>
+    `;
+    
+    // Determine endpoint based on service selection
+    let endpoint;
+    if (service === 'caddy-access') {
+        endpoint = `/admin/logs/caddy/access?lines=${lines}`;
+    } else if (service === 'caddy-error') {
+        endpoint = `/admin/logs/caddy/error?lines=${lines}`;
+    } else {
+        endpoint = `/admin/logs/${service}?lines=${lines}${level ? '&level=' + level : ''}`;
+    }
+    
+    fetch(endpoint)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderLogs(data.logs, service);
+            } else {
+                container.innerHTML = `
+                    <div class="text-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Error: ${data.error}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            container.innerHTML = `
+                <div class="text-danger">
+                    <i class="bi bi-exclamation-triangle"></i> Error loading logs: ${error.message}
+                </div>
+            `;
+        });
+}
+
+function renderLogs(logs, service) {
+    const container = document.getElementById('log-viewer-container');
+    
+    if (!logs || logs.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-light">
+                <i class="bi bi-info-circle"></i> No logs available for ${service}
+            </div>
+        `;
+        return;
+    }
+    
+    // Build log HTML with color coding
+    const logHtml = logs.map(log => {
+        const timestamp = log.timestamp ? `<span style="color: #858585;">[${log.timestamp}]</span> ` : '';
+        const message = escapeHtml(log.message);
+        const coloredMessage = colorizeLogMessage(message);
+        
+        return `<div style="margin-bottom: 2px; line-height: 1.4;">${timestamp}${coloredMessage}</div>`;
+    }).join('');
+    
+    container.innerHTML = logHtml;
+    
+    // Auto-scroll to bottom
+    container.scrollTop = container.scrollHeight;
+}
+
+function colorizeLogMessage(message) {
+    // Color code log levels
+    if (message.match(/ERROR|FATAL|CRITICAL|ERR/i)) {
+        return `<span style="color: #f48771;">${message}</span>`;
+    } else if (message.match(/WARNING|WARN|WRN/i)) {
+        return `<span style="color: #dcdcaa;">${message}</span>`;
+    } else if (message.match(/INFO|INF/i)) {
+        return `<span style="color: #4ec9b0;">${message}</span>`;
+    } else if (message.match(/DEBUG|DBG/i)) {
+        return `<span style="color: #858585;">${message}</span>`;
+    } else if (message.match(/GET|POST|PUT|DELETE|PATCH|HEAD/)) {
+        // HTTP methods
+        return `<span style="color: #9cdcfe;">${message}</span>`;
+    } else if (message.match(/\d{3}\s/)) {
+        // HTTP status codes
+        const statusMatch = message.match(/\b([2345]\d{2})\b/);
+        if (statusMatch) {
+            const status = parseInt(statusMatch[1]);
+            if (status >= 200 && status < 300) {
+                return message.replace(statusMatch[0], `<span style="color: #4ec9b0;">${statusMatch[0]}</span>`);
+            } else if (status >= 400) {
+                return message.replace(statusMatch[0], `<span style="color: #f48771;">${statusMatch[0]}</span>`);
+            }
+        }
+        return `<span style="color: #d4d4d4;">${message}</span>`;
+    }
+    
+    return `<span style="color: #d4d4d4;">${message}</span>`;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// System Update Functions
+function checkForUpdates() {
+    const versionInfo = document.getElementById('version-info');
+    
+    versionInfo.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="ms-2">Checking for updates...</span>
+        </div>
+    `;
+    
+    fetch('/admin/update/check')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderVersionInfo(data.current_versions, data.update_info);
+            } else {
+                versionInfo.innerHTML = `
+                    <div class="alert alert-danger mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Error: ${data.error}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            versionInfo.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Error checking for updates: ${error.message}
+                </div>
+            `;
+        });
+}
+
+function renderVersionInfo(versions, updateInfo) {
+    const versionInfo = document.getElementById('version-info');
+    
+    const serviceNames = ['caddy', 'xray', 'trojan', 'singbox', 'wireguard', 'admin'];
+    
+    const versionHtml = `
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Image</th>
+                        <th>Image ID</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${serviceNames.map(service => {
+                        const version = versions[service];
+                        if (!version) {
+                            return `
+                                <tr>
+                                    <td><strong>${service}</strong></td>
+                                    <td colspan="4" class="text-muted">Not available</td>
+                                </tr>
+                            `;
+                        }
+                        
+                        const statusBadge = version.status === 'running' 
+                            ? '<span class="badge bg-success">Running</span>'
+                            : version.status === 'not_running'
+                            ? '<span class="badge bg-secondary">Not Running</span>'
+                            : `<span class="badge bg-warning">${version.status}</span>`;
+                        
+                        const created = version.created ? new Date(version.created).toLocaleString() : '-';
+                        
+                        return `
+                            <tr>
+                                <td><strong>${service}</strong></td>
+                                <td><code>${version.image}</code></td>
+                                <td><code>${version.image_id || '-'}</code></td>
+                                <td>${statusBadge}</td>
+                                <td><small>${created}</small></td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+        
+        ${updateInfo && updateInfo.checked_at ? `
+            <div class="mt-2">
+                <small class="text-muted">
+                    <i class="bi bi-clock"></i> Last checked: ${new Date(updateInfo.checked_at).toLocaleString()}
+                </small>
+            </div>
+        ` : ''}
+    `;
+    
+    versionInfo.innerHTML = versionHtml;
+}
+
+function performUpdate(rebuildImages) {
+    const action = rebuildImages ? 'rebuild and update' : 'update';
+    const confirmMsg = rebuildImages 
+        ? 'This will rebuild all custom images from source and restart all services. This may take 5-10 minutes and cause brief disconnections. Continue?'
+        : 'This will pull the latest Docker images and restart all services. This may cause brief disconnections. Continue?';
+    
+    if (!confirm(confirmMsg)) {
+        return;
+    }
+    
+    // Show progress container
+    const progressContainer = document.getElementById('update-progress-container');
+    const resultsContainer = document.getElementById('update-results-container');
+    
+    progressContainer.style.display = 'block';
+    resultsContainer.style.display = 'none';
+    
+    document.getElementById('update-progress-content').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Updating...</span>
+            </div>
+            <p class="mt-2">Please wait while the system is being updated...</p>
+            <p class="text-muted">
+                <small>
+                    ${rebuildImages ? 'Building images and restarting services...' : 'Pulling images and restarting services...'}
+                    <br>This may take several minutes. Do not close this page.
+                </small>
+            </p>
+        </div>
+    `;
+    
+    // Perform update
+    fetch('/admin/update/perform', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ rebuild_images: rebuildImages })
+    })
+    .then(response => response.json())
+    .then(data => {
+        progressContainer.style.display = 'none';
+        resultsContainer.style.display = 'block';
+        
+        if (data.success) {
+            renderUpdateResults(data.result, true);
+            showAlert('System updated successfully!', 'success');
+            
+            // Refresh status and version info
+            setTimeout(() => {
+                loadStatus();
+                checkForUpdates();
+            }, 2000);
+        } else {
+            renderUpdateResults(data.result, false);
+            showAlert('Update completed with errors. Check results below.', 'warning');
+        }
+    })
+    .catch(error => {
+        progressContainer.style.display = 'none';
+        resultsContainer.style.display = 'block';
+        
+        document.getElementById('update-results-content').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i> 
+                <strong>Update Failed:</strong> ${error.message}
+            </div>
+        `;
+        
+        showAlert('Update failed: ' + error.message, 'danger');
+    });
+}
+
+// Backup Upload Functions
+let selectedBackupFile = null;
+
+function handleBackupFileSelect(event) {
+    const file = event.target.files[0];
+    const uploadBtn = document.getElementById('upload-backup-btn');
+    const resultContainer = document.getElementById('upload-result-container');
+    
+    // Clear previous results
+    resultContainer.style.display = 'none';
+    resultContainer.innerHTML = '';
+    
+    if (!file) {
+        uploadBtn.disabled = true;
+        selectedBackupFile = null;
+        return;
+    }
+    
+    // Validate file extension
+    if (!file.name.endsWith('.tar.gz')) {
+        resultContainer.style.display = 'block';
+        resultContainer.innerHTML = `
+            <div class="alert alert-danger mb-0">
+                <i class="bi bi-exclamation-triangle"></i> 
+                Invalid file format. Please select a .tar.gz file.
+            </div>
+        `;
+        uploadBtn.disabled = true;
+        selectedBackupFile = null;
+        return;
+    }
+    
+    // Validate file size (max 100MB)
+    const maxSize = 100 * 1024 * 1024; // 100MB
+    if (file.size > maxSize) {
+        resultContainer.style.display = 'block';
+        resultContainer.innerHTML = `
+            <div class="alert alert-danger mb-0">
+                <i class="bi bi-exclamation-triangle"></i> 
+                File too large. Maximum size is 100MB, selected file is ${(file.size / (1024*1024)).toFixed(2)}MB.
+            </div>
+        `;
+        uploadBtn.disabled = true;
+        selectedBackupFile = null;
+        return;
+    }
+    
+    // File is valid
+    selectedBackupFile = file;
+    uploadBtn.disabled = false;
+    
+    resultContainer.style.display = 'block';
+    resultContainer.innerHTML = `
+        <div class="alert alert-info mb-0">
+            <i class="bi bi-check-circle"></i> 
+            File selected: <strong>${file.name}</strong> (${formatBytes(file.size)})
+        </div>
+    `;
+}
+
+function uploadBackup() {
+    if (!selectedBackupFile) {
+        showAlert('Please select a backup file first', 'warning');
+        return;
+    }
+    
+    const uploadBtn = document.getElementById('upload-backup-btn');
+    const progressContainer = document.getElementById('upload-progress-container');
+    const progressBar = document.getElementById('upload-progress-bar');
+    const statusText = document.getElementById('upload-status-text');
+    const resultContainer = document.getElementById('upload-result-container');
+    
+    // Disable upload button
+    uploadBtn.disabled = true;
+    
+    // Show progress
+    progressContainer.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressBar.textContent = '0%';
+    statusText.textContent = 'Uploading backup file...';
+    
+    // Create FormData
+    const formData = new FormData();
+    formData.append('file', selectedBackupFile);
+    
+    // Upload with progress tracking
+    const xhr = new XMLHttpRequest();
+    
+    // Progress handler
+    xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            progressBar.style.width = percentComplete + '%';
+            progressBar.textContent = Math.round(percentComplete) + '%';
+        }
+    });
+    
+    // Completion handler
+    xhr.addEventListener('load', () => {
+        progressContainer.style.display = 'none';
+        
+        if (xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText);
+            
+            if (data.success) {
+                resultContainer.style.display = 'block';
+                resultContainer.innerHTML = `
+                    <div class="alert alert-success mb-0">
+                        <i class="bi bi-check-circle"></i> 
+                        <strong>Upload Successful!</strong><br>
+                        Filename: ${data.filename}<br>
+                        Size: ${data.size_human}<br>
+                        <small class="text-muted">The backup is now available in the list below and can be restored.</small>
+                    </div>
+                `;
+                
+                // Clear file input
+                document.getElementById('backup-file-input').value = '';
+                selectedBackupFile = null;
+                uploadBtn.disabled = true;
+                
+                // Reload backup list
+                loadBackups();
+                
+                showAlert('Backup uploaded successfully!', 'success');
+            } else {
+                resultContainer.style.display = 'block';
+                resultContainer.innerHTML = `
+                    <div class="alert alert-danger mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        <strong>Upload Failed:</strong> ${data.error}
+                    </div>
+                `;
+                uploadBtn.disabled = false;
+            }
+        } else {
+            const errorData = JSON.parse(xhr.responseText);
+            resultContainer.style.display = 'block';
+            resultContainer.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    <strong>Upload Failed:</strong> ${errorData.error || 'Unknown error'}
+                </div>
+            `;
+            uploadBtn.disabled = false;
+        }
+    });
+    
+    // Error handler
+    xhr.addEventListener('error', () => {
+        progressContainer.style.display = 'none';
+        resultContainer.style.display = 'block';
+        resultContainer.innerHTML = `
+            <div class="alert alert-danger mb-0">
+                <i class="bi bi-exclamation-triangle"></i> 
+                <strong>Upload Failed:</strong> Network error occurred
+            </div>
+        `;
+        uploadBtn.disabled = false;
+    });
+    
+    // Send request
+    xhr.open('POST', '/admin/backup/upload');
+    xhr.send(formData);
+}
+
+function renderUpdateResults(result, success) {
+    const resultsContent = document.getElementById('update-results-content');
+    
+    const alertClass = success ? 'alert-success' : 'alert-warning';
+    const icon = success ? 'check-circle' : 'exclamation-triangle';
+    
+    let html = `
+        <div class="alert ${alertClass}">
+            <i class="bi bi-${icon}"></i> 
+            <strong>${success ? 'Update Completed Successfully' : 'Update Completed with Issues'}</strong>
+        </div>
+    `;
+    
+    // Backup information
+    if (result.backup_created) {
+        html += `
+            <div class="alert alert-info">
+                <i class="bi bi-archive"></i> 
+                <strong>Backup Created:</strong> ${result.backup_created}
+                <br><small>You can restore this backup from the Backup Management section if needed.</small>
+            </div>
+        `;
+    }
+    
+    // Rollback information
+    if (result.rollback_performed) {
+        const rollbackStatus = result.rollback_success ? 'successful' : 'failed';
+        const rollbackClass = result.rollback_success ? 'alert-warning' : 'alert-danger';
+        
+        html += `
+            <div class="alert ${rollbackClass}">
+                <i class="bi bi-arrow-counterclockwise"></i> 
+                <strong>Rollback ${rollbackStatus}:</strong> System was rolled back to previous backup due to errors.
+            </div>
+        `;
+    }
+    
+    // Pull results
+    if (result.pull_results && Object.keys(result.pull_results).length > 0) {
+        html += `
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-download"></i> Image Pull Results</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(result.pull_results).map(([service, res]) => {
+                                const statusBadge = res.success 
+                                    ? '<span class="badge bg-success">Success</span>'
+                                    : '<span class="badge bg-danger">Failed</span>';
+                                const details = res.message || res.error || '-';
+                                
+                                return `
+                                    <tr>
+                                        <td><strong>${service}</strong></td>
+                                        <td>${statusBadge}</td>
+                                        <td><small>${details}</small></td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Rebuild results
+    if (result.rebuild_results && Object.keys(result.rebuild_results).length > 0) {
+        html += `
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-hammer"></i> Image Rebuild Results</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(result.rebuild_results).map(([service, res]) => {
+                                const statusBadge = res.success 
+                                    ? '<span class="badge bg-success">Success</span>'
+                                    : '<span class="badge bg-danger">Failed</span>';
+                                const details = res.message || res.error || '-';
+                                
+                                return `
+                                    <tr>
+                                        <td><strong>${service}</strong></td>
+                                        <td>${statusBadge}</td>
+                                        <td><small>${details}</small></td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Restart results
+    if (result.restart_results && Object.keys(result.restart_results).length > 0) {
+        html += `
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-arrow-repeat"></i> Service Restart Results</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(result.restart_results).map(([service, res]) => {
+                                const statusBadge = res.success 
+                                    ? '<span class="badge bg-success">Success</span>'
+                                    : '<span class="badge bg-danger">Failed</span>';
+                                const details = res.message || res.error || '-';
+                                
+                                return `
+                                    <tr>
+                                        <td><strong>${service}</strong></td>
+                                        <td>${statusBadge}</td>
+                                        <td><small>${details}</small></td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Errors
+    if (result.errors && result.errors.length > 0) {
+        html += `
+            <div class="alert alert-danger">
+                <h6><i class="bi bi-exclamation-triangle"></i> Errors:</h6>
+                <ul class="mb-0">
+                    ${result.errors.map(error => `<li>${error}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    }
+    
+    // Timing information
+    if (result.started_at && result.completed_at) {
+        const startTime = new Date(result.started_at);
+        const endTime = new Date(result.completed_at);
+        const duration = ((endTime - startTime) / 1000).toFixed(1);
+        
+        html += `
+            <div class="text-muted">
+                <small>
+                    <i class="bi bi-clock"></i> 
+                    Started: ${startTime.toLocaleString()} | 
+                    Completed: ${endTime.toLocaleString()} | 
+                    Duration: ${duration}s
+                </small>
+            </div>
+        `;
+    }
+    
+    resultsContent.innerHTML = html;
 }
 </script>
 {% endblock %}

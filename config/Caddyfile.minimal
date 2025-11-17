@@ -1,0 +1,23 @@
+# Minimal Caddyfile for testing
+
+{
+    # Enable admin API
+    admin 0.0.0.0:2019
+}
+
+# Main domain
+{$DOMAIN:vov.sneakernet.top} {
+    # Cover website
+    root * /srv
+    file_server
+    
+    # Admin panel (obfuscated as storage API)
+    handle /api/v2/storage/* {
+        reverse_proxy admin:8010
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/access.log
+    }
+}

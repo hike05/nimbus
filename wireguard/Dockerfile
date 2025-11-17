@@ -21,17 +21,7 @@ RUN apk add --no-cache \
     && rm -rf /var/cache/apk/*
 
 # Install websockify for WebSocket tunneling
-RUN pip3 install --no-cache-dir websockify
-
-# Build udp2raw from source for TCP masking
-WORKDIR /tmp
-RUN git clone https://github.com/wangyu-/udp2raw.git && \
-    cd udp2raw && \
-    make && \
-    cp udp2raw /usr/local/bin/ && \
-    chmod +x /usr/local/bin/udp2raw && \
-    cd / && \
-    rm -rf /tmp/udp2raw
+RUN pip3 install --no-cache-dir --break-system-packages websockify
 
 # Create non-root user for security (WireGuard needs NET_ADMIN capability)
 RUN addgroup -g 1000 wireguard && \

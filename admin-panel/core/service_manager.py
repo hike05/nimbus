@@ -81,3 +81,65 @@ class DockerServiceManager(ServiceManagerInterface):
         for service_name in self.services.keys():
             status[service_name] = self.check_service_health(service_name)
         return status
+    
+    def stop_service(self, service_name: str) -> bool:
+        """Stop a VPN service."""
+        try:
+            container_name = self.services.get(service_name)
+            if not container_name:
+                return False
+            
+            result = subprocess.run(
+                ["docker", "stop", container_name],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.returncode == 0:
+                print(f"Stopped service: {service_name}")
+                return True
+            else:
+                print(f"Failed to stop {service_name}: {result.stderr}")
+                return False
+        except subprocess.TimeoutExpired:
+            print(f"Timeout stopping {service_name}")
+            return False
+        except Exception as e:
+            print(f"Error stopping {service_name}: {e}")
+            return False
+    
+    def start_service(self, service_name: str) -> bool:
+        """Start a VPN service."""
+        try:
+            container_name = self.services.get(service_name)
+            if not container_name:
+                return False
+            
+            result = subprocess.run(
+                ["docker", "start", container_name],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.returncode == 0:
+                # Wait a bit for service to initialize
+                time.sleep(3)
+                
+                # Verify it's actually running
+                if self.check_service_health(service_name):
+                    print(f"Started service: {service_name}")
+                    return True
+                else:
+                    print(f"Service {service_name} started but not healthy")
+                    return False
+            else:
+                print(f"Failed to start {service_name}: {result.stderr}")
+                return False
+        except subprocess.TimeoutExpired:
+            print(f"Timeout starting {service_name}")
+            return False
+        except Exception as e:
+            print(f"Error starting {service_name}: {e}")
+            return False

@@ -31,6 +31,9 @@ RUN addgroup -g 1000 appuser && \
 # Switch to non-root user
 USER appuser
 
+# Set Python path
+ENV PYTHONPATH=/app:/app/core
+
 # Expose port
 EXPOSE 8010
 

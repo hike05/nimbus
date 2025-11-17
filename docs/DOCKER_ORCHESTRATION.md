@@ -73,6 +73,12 @@ Each service has its own named volume for persistent data:
 - `stealth-wireguard-data`: WireGuard runtime data
 - `stealth-admin-data`: Admin panel data
 
+**Named Volume Behavior:**
+- Persist data across container restarts
+- Survive `docker compose down` (unless `-v` flag used)
+- Managed by Docker (stored in `/var/lib/docker/volumes/`)
+- Can be backed up with `docker volume` commands
+
 #### Bind Mounts
 
 Shared configuration and data directories:
@@ -82,6 +88,46 @@ Shared configuration and data directories:
 - `./data/caddy/certificates`: SSL certificates
 - `./data/www`: Cover website files
 - `./core`: Shared Python modules
+
+**Bind Mount Behavior:**
+
+1. **Read-Write Mounts (`:rw` or default)**
+   ```yaml
+   volumes:
+     - ./data/stealth-vpn/configs:/data/configs:rw
+   ```
+   - Container can read and write files
+   - Changes persist on host filesystem
+   - Used for configs, logs, and data that needs modification
+
+2. **Read-Only Mounts (`:ro`)**
+   ```yaml
+   volumes:
+     - ./core:/app/core:ro
+   ```
+   - Container can only read files
+   - Prevents accidental modification
+   - Used for shared code and static resources
+
+**Volume Mount Conflicts:**
+
+Conflicts occur when:
+- Multiple containers mount the same path with different permissions
+- File ownership doesn't match container user
+- Host directory doesn't exist
+
+**Solutions:**
+```bash
+# Create directories with correct permissions
+mkdir -p data/stealth-vpn/{configs,logs,backups}
+chmod -R 755 data/
+
+# Fix ownership issues
+sudo chown -R $USER:$USER data/
+
+# Check mount points
+docker compose config | grep -A 5 volumes
+```
 
 ### Health Checks
 
@@ -120,6 +166,69 @@ depends_on:
 
 This ensures proper startup order and prevents Caddy from routing to unhealthy services.
 
+### Resource Limits
+
+Resource limits prevent services from consuming excessive CPU or memory.
+
+#### Standard Resource Limits (Full Mode)
+
+```yaml
+deploy:
+  resources:
+    limits:
+      cpus: '1.0'      # Maximum 1 CPU core
+      memory: 512M     # Maximum 512MB RAM
+    reservations:
+      cpus: '0.25'     # Minimum 0.25 CPU core
+      memory: 128M     # Minimum 128MB RAM
+```
+
+#### Adjusted Limits for Single-Core Servers
+
+For servers with only 1 CPU core, limits are automatically adjusted:
+
+```yaml
+deploy:
+  resources:
+    limits:
+      cpus: '0.5'      # Reduced to 0.5 CPU core
+      memory: 256M     # Reduced to 256MB RAM
+    reservations:
+      cpus: '0.1'      # Reduced to 0.1 CPU core
+      memory: 64M      # Reduced to 64MB RAM
+```
+
+**Why Adjust for Single-Core?**
+- Prevents resource contention between services
+- Allows all services to run simultaneously
+- Reduces risk of OOM (Out of Memory) kills
+- Improves stability on constrained hardware
+
+**Monitoring Resource Usage:**
+
+```bash
+# Real-time resource monitoring
+docker stats
+
+# Check if limits are being hit
+docker stats --no-stream | awk '{print $1, $3, $7}'
+
+# View container resource configuration
+docker inspect stealth-xray | jq '.[0].HostConfig.Memory'
+```
+
+**Signs of Resource Constraints:**
+- Services frequently restarting
+- Health checks timing out
+- Slow response times
+- OOM killer messages in logs: `docker compose logs | grep -i "killed"`
+
+**Solutions:**
+1. Use Minimal Mode (Caddy + Admin only)
+2. Increase server resources
+3. Adjust resource limits in docker-compose.yml
+4. Enable swap space
+
 ### Logging Configuration
 
 All services use JSON file logging with rotation:
@@ -129,6 +238,29 @@ All services use JSON file logging with rotation:
 - **Total Storage**: ~30MB per service
 
 Logs are also available via bind mounts in `./data/stealth-vpn/logs/`.
+
+**Log Driver Configuration:**
+
+```yaml
+logging:
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+```
+
+**Accessing Logs:**
+
+```bash
+# Via Docker Compose
+docker compose logs -f xray
+
+# Via bind mount
+tail -f data/stealth-vpn/logs/xray/xray.log
+
+# Via Docker directly
+docker logs -f stealth-xray
+```
 
 ### Security Features
 
@@ -421,81 +553,437 @@ tar -xzf backup.tar.gz
 docker compose up -d
 ```
 
-## Troubleshooting
+## Troubleshooting Docker-Specific Issues
 
 ### Services Won't Start
 
-1. Check logs:
+**Symptoms:**
+- Containers exit immediately after starting
+- Services stuck in "starting" state
+- "Exited (1)" status
+
+**Diagnostics:**
+```bash
+# Check service status
+docker compose ps
+
+# View logs
+docker compose logs -f
+
+# Verify configuration
+docker compose config
+
+# Check for errors
+docker compose logs | grep -i error
+```
+
+**Common Causes & Solutions:**
+
+1. **Configuration errors:**
    ```bash
-   docker compose logs -f
+   # Validate docker-compose.yml
+   docker compose config --quiet
+   
+   # Check for syntax errors
+   yamllint docker-compose.yml
    ```
 
-2. Verify configuration:
+2. **Missing dependencies:**
    ```bash
-   cat .env
-   docker compose config
+   # Check if required images exist
+   docker images | grep stealth
+   
+   # Rebuild if needed
+   docker compose build
    ```
 
-3. Check dependencies:
+3. **Port conflicts:**
    ```bash
-   docker compose ps
+   # Check what's using ports
+   sudo netstat -tulpn | grep -E ':80|:443'
+   
+   # Stop conflicting services
+   sudo systemctl stop nginx apache2
    ```
 
 ### Health Checks Failing
 
-1. Check service logs:
-   ```bash
-   docker compose logs -f <service>
-   ```
+**Symptoms:**
+- Services show "unhealthy" status
+- Containers restart repeatedly
+- Health check timeout errors
 
-2. Verify health check command:
-   ```bash
-   docker compose exec <service> <health-check-command>
-   ```
+**Diagnostics:**
+```bash
+# Check health status
+docker compose ps
 
-3. Increase start period:
+# View health check logs
+docker inspect stealth-xray | jq '.[0].State.Health'
+
+# Test health check manually
+docker compose exec xray pgrep xray
+```
+
+**Solutions:**
+
+1. **Increase timeouts for slow servers:**
    ```yaml
    healthcheck:
-     start_period: 60s
+     interval: 60s        # Increase from 30s
+     timeout: 20s         # Increase from 10s
+     start_period: 120s   # Increase from 40s
+     retries: 5           # Increase from 3
+   ```
+
+2. **Check if service is actually running:**
+   ```bash
+   docker compose exec xray ps aux
+   ```
+
+3. **Verify health check command works:**
+   ```bash
+   docker compose exec caddy wget -O- http://localhost:2019/config/
    ```
 
 ### Network Issues
 
-1. Check network:
-   ```bash
-   docker network ls
-   docker network inspect stealth-vpn
-   ```
+**Symptoms:**
+- Services can't communicate
+- "Connection refused" errors
+- DNS resolution failures
 
-2. Verify connectivity:
-   ```bash
-   docker compose exec caddy ping xray
-   ```
+**Diagnostics:**
+```bash
+# Check network exists
+docker network ls | grep stealth-vpn
 
-3. Recreate network:
+# Inspect network
+docker network inspect stealth-vpn
+
+# Check container connectivity
+docker compose exec caddy ping admin
+docker compose exec caddy nslookup xray
+```
+
+**Solutions:**
+
+1. **Recreate network:**
    ```bash
    docker compose down
    docker network rm stealth-vpn
    docker compose up -d
    ```
 
-### Volume Issues
-
-1. Check volumes:
+2. **Verify network configuration:**
    ```bash
-   docker volume ls
-   docker volume inspect stealth-caddy-data
+   docker compose config | grep -A 10 networks
    ```
 
-2. Verify permissions:
+3. **Check firewall rules:**
    ```bash
-   ls -la data/stealth-vpn/
+   sudo iptables -L -n | grep docker
    ```
 
-3. Recreate volumes:
+### Volume Mount Issues
+
+**Symptoms:**
+- "Permission denied" errors
+- "Read-only file system" errors
+- Data not persisting
+
+**Diagnostics:**
+```bash
+# List volumes
+docker volume ls
+
+# Inspect volume
+docker volume inspect stealth-caddy-data
+
+# Check mount points
+docker inspect stealth-admin | jq '.[0].Mounts'
+
+# Verify host directory permissions
+ls -la data/stealth-vpn/
+```
+
+**Solutions:**
+
+1. **Fix permissions:**
+   ```bash
+   sudo chown -R $USER:$USER data/
+   chmod -R 755 data/
+   ```
+
+2. **Verify mount syntax:**
+   ```yaml
+   volumes:
+     - ./data/configs:/data/configs:rw  # Correct
+     # Not: ./data/configs:/data/configs:ro (if writing needed)
+   ```
+
+3. **Recreate volumes:**
    ```bash
    docker compose down -v
    docker compose up -d
+   ```
+
+4. **Check for conflicts:**
+   ```bash
+   # Ensure no other containers use same volumes
+   docker ps -a --filter volume=stealth-caddy-data
+   ```
+
+### Resource Exhaustion
+
+**Symptoms:**
+- "Out of memory" errors
+- Containers killed by OOM
+- Slow performance
+- Services timing out
+
+**Diagnostics:**
+```bash
+# Check resource usage
+docker stats --no-stream
+
+# Check system resources
+free -h
+df -h
+
+# View OOM kills
+dmesg | grep -i "out of memory"
+docker compose logs | grep -i "killed"
+```
+
+**Solutions:**
+
+1. **Use Minimal Mode:**
+   ```bash
+   docker compose -f docker-compose.minimal.yml up -d
+   ```
+
+2. **Reduce resource limits:**
+   ```yaml
+   deploy:
+     resources:
+       limits:
+         cpus: '0.5'
+         memory: 256M
+   ```
+
+3. **Enable swap:**
+   ```bash
+   sudo fallocate -l 2G /swapfile
+   sudo chmod 600 /swapfile
+   sudo mkswap /swapfile
+   sudo swapon /swapfile
+   
+   # Make permanent
+   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+   ```
+
+4. **Clean up Docker resources:**
+   ```bash
+   docker system prune -a
+   docker volume prune
+   ```
+
+### Port Conflicts
+
+**Symptoms:**
+- "Address already in use" errors
+- Services fail to bind to ports
+- Cannot start Caddy
+
+**Diagnostics:**
+```bash
+# Check what's using ports
+sudo netstat -tulpn | grep -E ':80|:443|:8001|:8002'
+sudo lsof -i :443
+
+# Check Docker port mappings
+docker compose ps
+docker port stealth-caddy
+```
+
+**Solutions:**
+
+1. **Stop conflicting services:**
+   ```bash
+   sudo systemctl stop nginx apache2
+   sudo systemctl disable nginx apache2
+   ```
+
+2. **Change ports in docker-compose.yml:**
+   ```yaml
+   ports:
+     - "8080:80"    # Use alternative port
+     - "8443:443"
+   ```
+
+3. **Kill process using port:**
+   ```bash
+   sudo kill $(sudo lsof -t -i:443)
+   ```
+
+### Build Failures
+
+**Symptoms:**
+- "failed to solve" errors
+- "no space left on device"
+- Build context too large
+
+**Diagnostics:**
+```bash
+# Check disk space
+df -h
+
+# Check Docker disk usage
+docker system df
+
+# View build logs
+docker compose build --progress=plain
+```
+
+**Solutions:**
+
+1. **Clean up Docker:**
+   ```bash
+   docker system prune -a
+   docker builder prune -a
+   ```
+
+2. **Build with no cache:**
+   ```bash
+   docker compose build --no-cache
+   ```
+
+3. **Build services individually:**
+   ```bash
+   docker compose build caddy
+   docker compose build admin
+   ```
+
+4. **Check .dockerignore:**
+   ```bash
+   cat .dockerignore
+   # Should exclude: node_modules, .git, data/, etc.
+   ```
+
+### Container Restart Loops
+
+**Symptoms:**
+- Container constantly restarting
+- "Restarting (1)" status
+- Logs show repeated startup attempts
+
+**Diagnostics:**
+```bash
+# Check restart count
+docker compose ps
+
+# View logs for errors
+docker compose logs --tail=100 xray
+
+# Check exit code
+docker inspect stealth-xray | jq '.[0].State.ExitCode'
+```
+
+**Solutions:**
+
+1. **Check for configuration errors:**
+   ```bash
+   python3 scripts/xray-config-manager.py validate
+   ```
+
+2. **Disable restart policy temporarily:**
+   ```yaml
+   restart: "no"  # Instead of "unless-stopped"
+   ```
+
+3. **Increase resource limits:**
+   ```yaml
+   deploy:
+     resources:
+       limits:
+         memory: 1G  # Increase if OOM
+   ```
+
+4. **Check dependencies:**
+   ```yaml
+   depends_on:
+     admin:
+       condition: service_healthy  # Ensure deps are healthy
+   ```
+
+## Docker-Specific Best Practices
+
+### Volume Management
+
+1. **Use named volumes for data:**
+   ```yaml
+   volumes:
+     stealth-caddy-data:
+       driver: local
+   ```
+
+2. **Use bind mounts for configs:**
+   ```yaml
+   volumes:
+     - ./config/Caddyfile:/etc/caddy/Caddyfile:ro
+   ```
+
+3. **Regular backups:**
+   ```bash
+   docker run --rm -v stealth-caddy-data:/data -v $(pwd):/backup \
+     alpine tar czf /backup/caddy-data.tar.gz /data
+   ```
+
+### Network Security
+
+1. **Use internal networks:**
+   ```yaml
+   networks:
+     stealth-vpn:
+       internal: false  # Only Caddy needs external access
+   ```
+
+2. **Limit exposed ports:**
+   ```yaml
+   ports:
+     - "443:443"  # Only expose necessary ports
+   ```
+
+3. **Use network aliases:**
+   ```yaml
+   networks:
+     stealth-vpn:
+       aliases:
+         - xray-service
+   ```
+
+### Resource Management
+
+1. **Set appropriate limits:**
+   ```yaml
+   deploy:
+     resources:
+       limits:
+         cpus: '1.0'
+         memory: 512M
+   ```
+
+2. **Monitor usage:**
+   ```bash
+   docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
+   ```
+
+3. **Use health checks:**
+   ```yaml
+   healthcheck:
+     test: ["CMD", "pgrep", "xray"]
+     interval: 30s
    ```
 
 ## Best Practices
