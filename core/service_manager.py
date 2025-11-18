@@ -1,5 +1,5 @@
 """
-Service management for the Stealth VPN Server.
+Service management for the Multi-Protocol Proxy Server.
 Handles service reloading, health checks, and configuration updates.
 """
 
@@ -13,7 +13,7 @@ from .interfaces import ServiceManagerInterface
 
 
 class DockerServiceManager(ServiceManagerInterface):
-    """Manages Docker-based VPN services."""
+    """Manages Docker-based proxy services."""
     
     def __init__(self, compose_file: str = "docker-compose.yml"):
         self.compose_file = compose_file
@@ -27,7 +27,7 @@ class DockerServiceManager(ServiceManagerInterface):
         }
     
     def reload_service(self, service_name: str) -> bool:
-        """Gracefully reload a VPN service."""
+        """Gracefully reload a proxy service."""
         try:
             container_name = self.services.get(service_name)
             if not container_name:
@@ -143,7 +143,7 @@ class DockerServiceManager(ServiceManagerInterface):
             return False
     
     def get_service_status(self) -> Dict[str, bool]:
-        """Get status of all VPN services."""
+        """Get status of all proxy services."""
         status = {}
         for service_name in self.services.keys():
             status[service_name] = self.check_service_health(service_name)
@@ -153,7 +153,7 @@ class DockerServiceManager(ServiceManagerInterface):
         """Update Xray configuration and reload the service."""
         try:
             # Save the new configuration
-            config_path = Path("./data/stealth-vpn/configs/xray.json")
+            config_path = Path("./data/proxy/configs/xray.json")
             with open(config_path, 'w') as f:
                 json.dump(config, f, indent=2)
             
@@ -170,7 +170,7 @@ class DockerServiceManager(ServiceManagerInterface):
         """Update Trojan-Go configuration and reload the service."""
         try:
             # Save the new configuration
-            config_path = Path("./data/stealth-vpn/configs/trojan.json")
+            config_path = Path("./data/proxy/configs/trojan.json")
             with open(config_path, 'w') as f:
                 json.dump(config, f, indent=2)
             
@@ -187,7 +187,7 @@ class DockerServiceManager(ServiceManagerInterface):
         """Update Sing-box configuration and reload the service."""
         try:
             # Save the new configuration
-            config_path = Path("./data/stealth-vpn/configs/singbox.json")
+            config_path = Path("./data/proxy/configs/singbox.json")
             with open(config_path, 'w') as f:
                 json.dump(config, f, indent=2)
             
@@ -204,7 +204,7 @@ class DockerServiceManager(ServiceManagerInterface):
         """Update WireGuard configuration and reload the service."""
         try:
             # Save the new configuration
-            config_path = Path("./data/stealth-vpn/configs/wireguard/wg0.conf")
+            config_path = Path("./data/proxy/configs/wireguard/wg0.conf")
             config_path.parent.mkdir(parents=True, exist_ok=True)
             
             # Backup existing config

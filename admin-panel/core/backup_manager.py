@@ -1,5 +1,5 @@
 """
-Backup and restore functionality for VPN server configurations.
+Backup and restore functionality for proxy server configurations.
 """
 
 import json
@@ -14,7 +14,7 @@ import os
 class BackupManager:
     """Manages configuration backups and restoration."""
     
-    def __init__(self, config_dir: str = "/data/stealth-vpn/configs"):
+    def __init__(self, config_dir: str = "/data/proxy/configs"):
         self.config_dir = Path(config_dir)
         self.backup_dir = self.config_dir.parent / "backups"
         self.backup_dir.mkdir(parents=True, exist_ok=True)
@@ -203,9 +203,9 @@ class BackupManager:
                 result['message'] = "Cannot proceed without safety backup"
                 return result
             
-            # Step 3: Stop VPN services if service_manager is provided
+            # Step 3: Stop proxy services if service_manager is provided
             if service_manager:
-                print("Stopping VPN services...")
+                print("Stopping proxy services...")
                 services_to_stop = ['xray', 'trojan', 'singbox', 'wireguard']
                 for service in services_to_stop:
                     try:
@@ -298,9 +298,9 @@ class BackupManager:
                 if temp_dir.exists():
                     shutil.rmtree(temp_dir)
             
-            # Step 5: Restart VPN services if service_manager is provided
+            # Step 5: Restart proxy services if service_manager is provided
             if service_manager and result['services_stopped']:
-                print("Restarting VPN services...")
+                print("Restarting proxy services...")
                 for service in result['services_stopped']:
                     try:
                         if service_manager.start_service(service):
@@ -370,7 +370,7 @@ class BackupManager:
                     if "version" not in metadata:
                         metadata["version"] = "1.0"
                     if "included_items" not in metadata:
-                        metadata["included_items"] = ["users.json", "vpn configs", "client configs"]
+                        metadata["included_items"] = ["users.json", "proxy configs", "client configs"]
                     if "created_at" not in metadata and "timestamp" in metadata:
                         # Convert old timestamp format to ISO format
                         try:
@@ -511,7 +511,7 @@ class BackupManager:
                         if any('users.json' in name for name in member_names):
                             included.append('users.json')
                         if any('configs/' in name for name in member_names):
-                            included.append('vpn configs')
+                            included.append('proxy configs')
                         if any('clients/' in name for name in member_names):
                             included.append('client configs')
                         if any('certificates' in name for name in member_names):

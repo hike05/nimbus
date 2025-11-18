@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Service monitoring script for Stealth VPN Server
+Service monitoring script for Multi-Protocol Proxy Server
 Continuously monitors all services and provides alerts
 """
 
@@ -164,7 +164,7 @@ class ServiceMonitor:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Monitor Stealth VPN services")
+    parser = argparse.ArgumentParser(description="Monitor Multi-Protocol Proxy services")
     parser.add_argument(
         "--continuous",
         action="store_true",
@@ -179,7 +179,7 @@ def main():
     parser.add_argument(
         "--data-dir",
         type=Path,
-        default=Path("./data/stealth-vpn"),
+        default=Path("./data/proxy"),
         help="Data directory path"
     )
     parser.add_argument(

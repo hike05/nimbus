@@ -29,7 +29,7 @@ your-domain.com, www.your-domain.com, api.your-domain.com, cdn.your-domain.com, 
         }
     }
     
-    # SNI-based routing for VPN protocols using subdomains
+    # SNI-based routing for proxy protocols using subdomains
     @vision tls sni your-domain.com
     handle @vision {
         reverse_proxy xray:8001 {

@@ -1,5 +1,5 @@
 """
-Core interfaces for the Stealth VPN Server system.
+Core interfaces for the Multi-Protocol Proxy Server system.
 Defines the system boundaries and contracts between components.
 """
 
@@ -12,7 +12,7 @@ import re
 
 @dataclass
 class User:
-    """User data model for VPN access with validation."""
+    """User data model for proxy access with validation."""
     username: str
     id: str  # UUID
     xray_uuid: str
@@ -225,7 +225,7 @@ class UserStorageInterface(ABC):
 
 
 class ConfigGeneratorInterface(ABC):
-    """Interface for generating VPN server and client configurations."""
+    """Interface for generating proxy server and client configurations."""
     
     @abstractmethod
     def generate_xray_server_config(self, users: Dict[str, User]) -> Dict[str, Any]:
@@ -278,11 +278,11 @@ class ObfuscationInterface(ABC):
 
 
 class ServiceManagerInterface(ABC):
-    """Interface for managing VPN services."""
+    """Interface for managing proxy services."""
     
     @abstractmethod
     def reload_service(self, service_name: str) -> bool:
-        """Gracefully reload a VPN service."""
+        """Gracefully reload a proxy service."""
         pass
     
     @abstractmethod
@@ -292,7 +292,7 @@ class ServiceManagerInterface(ABC):
     
     @abstractmethod
     def get_service_status(self) -> Dict[str, bool]:
-        """Get status of all VPN services."""
+        """Get status of all proxy services."""
         pass
 
 

@@ -3,7 +3,7 @@ version: '3.8'
 services:
   caddy:
     image: caddy:2-alpine
-    container_name: stealth-caddy
+    container_name: gateway
     ports:
       - "80:80"
       - "443:443"
@@ -19,7 +19,7 @@ services:
       - DOMAIN=${DOMAIN:-your-domain.com}
       - EMAIL=${EMAIL:-admin@your-domain.com}
     networks:
-      - stealth-vpn
+      - proxy-network
     restart: unless-stopped
     depends_on:
       admin:
@@ -57,11 +57,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 512M
+          cpus: '${CPU_LIMIT_PER_SERVICE:-0.5}'
+          memory: ${RAM_LIMIT_PER_SERVICE:-256M}
         reservations:
-          cpus: '0.5'
-          memory: 128M
+          cpus: '0.1'
+          memory: 64M
     ulimits:
       nofile:
         soft: 65536
@@ -74,19 +74,19 @@ services:
     build:
       context: ./xray
       dockerfile: Dockerfile
-    image: stealth-xray:latest
-    container_name: stealth-xray
+    image: proxy-a:latest
+    container_name: proxy-a
     volumes:
-      - ./data/stealth-vpn/configs:/etc/xray:ro
+      - ./data/proxy/configs:/etc/xray:ro
       - ./data/caddy/certificates:/etc/letsencrypt:ro
-      - ./data/stealth-vpn/logs/xray:/var/log/xray
+      - ./data/proxy/logs/xray:/var/log/xray
       - xray_data:/var/lib/xray
     environment:
       - XRAY_VISION_PORT=${XRAY_VISION_PORT:-8001}
       - XRAY_WEBSOCKET_PORT=${XRAY_WEBSOCKET_PORT:-8004}
       - DOMAIN=${DOMAIN:-your-domain.com}
     networks:
-      - stealth-vpn
+      - proxy-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "sh", "-c", "test -f /etc/xray/xray.json && pgrep xray"]
@@ -113,11 +113,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 512M
+          cpus: '${CPU_LIMIT_PER_SERVICE:-0.5}'
+          memory: ${RAM_LIMIT_PER_SERVICE:-256M}
         reservations:
-          cpus: '0.5'
-          memory: 128M
+          cpus: '0.1'
+          memory: 64M
     ulimits:
       nofile:
         soft: 65536
@@ -130,19 +130,19 @@ services:
     build:
       context: ./trojan
       dockerfile: Dockerfile
-    image: stealth-trojan:latest
-    container_name: stealth-trojan
+    image: proxy-b:latest
+    container_name: proxy-b
     volumes:
-      - ./data/stealth-vpn/configs:/etc/trojan-go:ro
+      - ./data/proxy/configs:/etc/trojan-go:ro
       - ./data/caddy/certificates:/etc/letsencrypt:ro
-      - ./data/stealth-vpn/logs/trojan:/var/log/trojan-go
+      - ./data/proxy/logs/trojan:/var/log/trojan-go
       - trojan_data:/var/lib/trojan-go
     environment:
       - CONFIG_FILE=/etc/trojan-go/trojan.json
       - TROJAN_PORT=${TROJAN_PORT:-8002}
       - DOMAIN=${DOMAIN:-your-domain.com}
     networks:
-      - stealth-vpn
+      - proxy-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "sh", "-c", "test -f /etc/trojan-go/trojan.json && pgrep trojan-go"]
@@ -169,11 +169,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 512M
+          cpus: '${CPU_LIMIT_PER_SERVICE:-0.5}'
+          memory: ${RAM_LIMIT_PER_SERVICE:-256M}
         reservations:
-          cpus: '0.5'
-          memory: 128M
+          cpus: '0.1'
+          memory: 64M
     ulimits:
       nofile:
         soft: 65536
@@ -186,12 +186,12 @@ services:
     build:
       context: ./singbox
       dockerfile: Dockerfile
-    image: stealth-singbox:latest
-    container_name: stealth-singbox
+    image: proxy-c:latest
+    container_name: proxy-c
     volumes:
-      - ./data/stealth-vpn/configs:/etc/sing-box:ro
+      - ./data/proxy/configs:/etc/sing-box:ro
       - ./data/caddy/certificates:/etc/letsencrypt:ro
-      - ./data/stealth-vpn/logs/singbox:/var/log/sing-box
+      - ./data/proxy/logs/singbox:/var/log/sing-box
       - singbox_data:/var/lib/sing-box
     environment:
       - SINGBOX_SHADOWTLS_PORT=${SINGBOX_SHADOWTLS_PORT:-8003}
@@ -199,7 +199,7 @@ services:
       - SINGBOX_TUIC_PORT=${SINGBOX_TUIC_PORT:-8006}
       - DOMAIN=${DOMAIN:-your-domain.com}
     networks:
-      - stealth-vpn
+      - proxy-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "sh", "-c", "test -f /etc/sing-box/singbox.json && pgrep sing-box"]
@@ -226,11 +226,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 512M
+          cpus: '${CPU_LIMIT_PER_SERVICE:-0.5}'
+          memory: ${RAM_LIMIT_PER_SERVICE:-256M}
         reservations:
-          cpus: '0.5'
-          memory: 128M
+          cpus: '0.1'
+          memory: 64M
     ulimits:
       nofile:
         soft: 65536
@@ -243,8 +243,8 @@ services:
     build:
       context: ./wireguard
       dockerfile: Dockerfile
-    image: stealth-wireguard:latest
-    container_name: stealth-wireguard
+    image: proxy-d:latest
+    container_name: proxy-d
     cap_drop:
       - ALL
     cap_add:
@@ -260,7 +260,7 @@ services:
       - PGID=1000
       - TZ=${TZ:-UTC}
       - WG_PORT=${WIREGUARD_SERVER_PORT:-51820}
-      - WG_ADDRESS=${VPN_SUBNET:-10.66.66.1/24}
+      - WG_ADDRESS=${PROXY_SUBNET:-10.66.66.1/24}
       - WG_DNS=${DNS_SERVERS:-1.1.1.1,8.8.8.8}
       - ENABLE_WEBSOCKET=true
       - ENABLE_UDP2RAW=false
@@ -268,13 +268,13 @@ services:
       - UDP2RAW_PORT=8007
       - DOMAIN=${DOMAIN:-your-domain.com}
     volumes:
-      - ./data/stealth-vpn/configs/wireguard:/config
+      - ./data/proxy/configs/wireguard:/config
       - ./data/caddy/certificates:/etc/letsencrypt:ro
-      - ./data/stealth-vpn/logs/wireguard:/var/log/wireguard
+      - ./data/proxy/logs/wireguard:/var/log/wireguard
       - /lib/modules:/lib/modules:ro
       - wireguard_data:/var/lib/wireguard
     networks:
-      - stealth-vpn
+      - proxy-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "sh", "-c", "test -d /config && wg show wg0"]
@@ -293,11 +293,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 512M
+          cpus: '${CPU_LIMIT_PER_SERVICE:-0.5}'
+          memory: ${RAM_LIMIT_PER_SERVICE:-256M}
         reservations:
-          cpus: '0.5'
-          memory: 128M
+          cpus: '0.1'
+          memory: 64M
     ulimits:
       nofile:
         soft: 65536
@@ -310,11 +310,11 @@ services:
     build:
       context: ./admin-panel
       dockerfile: Dockerfile
-    image: stealth-admin:latest
-    container_name: stealth-admin
+    image: web:latest
+    container_name: web
     user: "1000:1000"
     volumes:
-      - ./data/stealth-vpn:/app/data
+      - ./data/proxy:/app/data
       - /var/run/docker.sock:/var/run/docker.sock:ro  # For service management
       - admin_data:/var/lib/admin
       - ./data/caddy/certificates:/data/caddy/certificates:ro  # For SSL cert backup
@@ -333,7 +333,7 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - RATE_LIMIT_ADMIN=${RATE_LIMIT_ADMIN:-5}
     networks:
-      - stealth-vpn
+      - proxy-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/health', timeout=5)"]
@@ -359,10 +359,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 256M
+          cpus: '${CPU_LIMIT_PER_SERVICE:-0.5}'
+          memory: ${RAM_LIMIT_PER_SERVICE:-256M}
         reservations:
-          cpus: '0.25'
+          cpus: '0.1'
           memory: 64M
     ulimits:
       nofile:
@@ -373,8 +373,8 @@ services:
         hard: 2048
 
 networks:
-  stealth-vpn:
-    name: stealth-vpn
+  proxy-network:
+    name: proxy-network
     driver: bridge
     ipam:
       driver: default
@@ -384,23 +384,23 @@ networks:
 
 volumes:
   caddy_data:
-    name: stealth-caddy-data
+    name: gateway-data
     driver: local
   caddy_config:
-    name: stealth-caddy-config
+    name: gateway-config
     driver: local
   xray_data:
-    name: stealth-xray-data
+    name: proxy-a-data
     driver: local
   trojan_data:
-    name: stealth-trojan-data
+    name: proxy-b-data
     driver: local
   singbox_data:
-    name: stealth-singbox-data
+    name: proxy-c-data
     driver: local
   wireguard_data:
-    name: stealth-wireguard-data
+    name: proxy-d-data
     driver: local
   admin_data:
-    name: stealth-admin-data
+    name: web-data
     driver: local

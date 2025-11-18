@@ -1,5 +1,5 @@
 """
-Stealth VPN Server Admin Panel
+Multi-Protocol Proxy Server Admin Panel
 Masqueraded as a cloud storage management interface.
 """
 
@@ -25,9 +25,6 @@ from config_generator import ConfigGenerator
 from service_manager import DockerServiceManager
 from client_config_manager import ClientConfigManager
 from backup_manager import BackupManager
-from system_monitor import SystemMonitor
-from log_reader import LogReader
-from update_manager import UpdateManager
 
 # Try to import endpoint manager from parent directory
 try:
@@ -53,9 +50,6 @@ config_generator = ConfigGenerator(str(CONFIG_DIR), DOMAIN)
 service_manager = DockerServiceManager()
 client_config_manager = ClientConfigManager(str(CONFIG_DIR), DOMAIN)
 backup_manager = BackupManager(str(CONFIG_DIR))
-system_monitor = SystemMonitor()
-log_reader = LogReader()
-update_manager = UpdateManager(str(DATA_DIR))
 
 # Initialize endpoint manager if available
 endpoint_manager = None
@@ -156,7 +150,7 @@ def admin_panel():
 @app.route('/api/v2/storage/files', methods=['GET'])  # Keep for backward compatibility
 @require_auth
 def list_users():
-    """List all VPN users."""
+    """List all proxy users."""
     try:
         users = user_storage.load_users()
         
@@ -183,7 +177,7 @@ def list_users():
 @app.route('/api/v2/storage/files', methods=['POST'])  # Keep for backward compatibility
 @require_auth
 def create_user():
-    """Create new VPN user."""
+    """Create new proxy user."""
     try:
         data = request.get_json()
         username = data.get('filename', '').strip()  # Masqueraded as "filename"
@@ -223,7 +217,7 @@ def create_user():
 @app.route('/api/v2/storage/files/<username>', methods=['DELETE'])  # Keep for backward compatibility
 @require_auth
 def delete_user(username):
-    """Delete VPN user."""
+    """Delete proxy user."""
     try:
         success = user_storage.remove_user(username)
         
@@ -347,36 +341,7 @@ def get_all_qrcodes(username):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/admin/monitoring/system', methods=['GET'])
-@app.route('/api/v2/storage/monitoring/system', methods=['GET'])  # Keep for backward compatibility
-@require_auth
-def get_system_metrics():
-    """Get system resource metrics (CPU, memory, disk, network)."""
-    try:
-        metrics = system_monitor.get_system_metrics()
-        
-        return jsonify({
-            'success': True,
-            'metrics': metrics
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
-
-@app.route('/admin/monitoring/services', methods=['GET'])
-@app.route('/api/v2/storage/monitoring/services', methods=['GET'])  # Keep for backward compatibility
-@require_auth
-def get_service_metrics():
-    """Get Docker container statistics for all VPN services."""
-    try:
-        service_stats = system_monitor.get_all_service_stats()
-        
-        return jsonify({
-            'success': True,
-            'services': service_stats
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/admin/monitoring', methods=['GET'])
@@ -599,7 +564,7 @@ def upload_backup():
 @app.route('/api/v2/storage/services/<service_name>/reload', methods=['POST'])  # Keep for backward compatibility
 @require_auth
 def reload_service(service_name):
-    """Reload a specific VPN service."""
+    """Reload a specific proxy service."""
     try:
         success = service_manager.reload_service(service_name)
         
@@ -640,87 +605,7 @@ def update_all_configs():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/admin/logs/<service>', methods=['GET'])
-@app.route('/api/v2/storage/logs/<service>', methods=['GET'])  # Keep for backward compatibility
-@require_auth
-def get_service_logs(service):
-    """Get logs for a specific service."""
-    try:
-        # Get query parameters
-        lines = request.args.get('lines', default=100, type=int)
-        level_filter = request.args.get('level', default=None, type=str)
-        
-        # Validate lines parameter
-        if lines < 1 or lines > 1000:
-            return jsonify({'error': 'Lines must be between 1 and 1000'}), 400
-        
-        # Validate service name
-        valid_services = ['xray', 'trojan', 'singbox', 'wireguard', 'caddy', 'admin']
-        if service not in valid_services:
-            return jsonify({'error': f'Invalid service. Must be one of: {", ".join(valid_services)}'}), 400
-        
-        # Get logs
-        log_data = log_reader.get_service_logs(service, lines, level_filter)
-        
-        return jsonify({
-            'success': True,
-            'service': log_data['service'],
-            'container': log_data['container'],
-            'logs': log_data['logs'],
-            'count': log_data['count'],
-            'lines_requested': lines,
-            'level_filter': level_filter
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
-
-@app.route('/admin/logs/caddy/access', methods=['GET'])
-@app.route('/api/v2/storage/logs/caddy/access', methods=['GET'])  # Keep for backward compatibility
-@require_auth
-def get_caddy_access_logs():
-    """Get Caddy access logs (HTTP requests)."""
-    try:
-        lines = request.args.get('lines', default=100, type=int)
-        
-        if lines < 1 or lines > 1000:
-            return jsonify({'error': 'Lines must be between 1 and 1000'}), 400
-        
-        logs = log_reader.get_caddy_access_logs(lines)
-        
-        return jsonify({
-            'success': True,
-            'service': 'caddy',
-            'log_type': 'access',
-            'logs': logs,
-            'count': len(logs)
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
-@app.route('/admin/logs/caddy/error', methods=['GET'])
-@app.route('/api/v2/storage/logs/caddy/error', methods=['GET'])  # Keep for backward compatibility
-@require_auth
-def get_caddy_error_logs():
-    """Get Caddy error logs."""
-    try:
-        lines = request.args.get('lines', default=100, type=int)
-        
-        if lines < 1 or lines > 1000:
-            return jsonify({'error': 'Lines must be between 1 and 1000'}), 400
-        
-        logs = log_reader.get_caddy_error_logs(lines)
-        
-        return jsonify({
-            'success': True,
-            'service': 'caddy',
-            'log_type': 'error',
-            'logs': logs,
-            'count': len(logs)
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/admin/endpoints', methods=['GET'])
@@ -781,61 +666,7 @@ def rotate_endpoints():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/admin/update/check', methods=['GET'])
-@app.route('/api/v2/storage/update/check', methods=['GET'])  # Keep for backward compatibility
-@require_auth
-def check_updates():
-    """Check for available system updates."""
-    try:
-        # Get current version information
-        versions = update_manager.get_service_versions()
-        
-        # Check for updates
-        update_info = update_manager.check_for_updates()
-        
-        return jsonify({
-            'success': True,
-            'current_versions': versions,
-            'update_info': update_info
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
-
-@app.route('/admin/update/perform', methods=['POST'])
-@app.route('/api/v2/storage/update/perform', methods=['POST'])  # Keep for backward compatibility
-@require_auth
-def perform_update():
-    """Perform system update with automatic backup and rollback on failure."""
-    try:
-        data = request.get_json() or {}
-        rebuild_images = data.get('rebuild_images', False)
-        
-        # Perform update
-        result = update_manager.perform_update(rebuild_images=rebuild_images)
-        
-        return jsonify({
-            'success': result['success'],
-            'result': result
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
-@app.route('/admin/update/versions', methods=['GET'])
-@app.route('/api/v2/storage/update/versions', methods=['GET'])  # Keep for backward compatibility
-@require_auth
-def get_versions():
-    """Get current version information for all services."""
-    try:
-        versions = update_manager.get_service_versions()
-        
-        return jsonify({
-            'success': True,
-            'versions': versions
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == '__main__':

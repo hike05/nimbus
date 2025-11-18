@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Setup monitoring and log rotation for Stealth VPN Server
+# Setup monitoring and log rotation for Multi-Protocol Proxy Server
 # Configures cron jobs for automated maintenance
 
 set -e
@@ -39,7 +39,7 @@ fi
 
 # Create log directories
 log "Creating log directories..."
-mkdir -p "$PROJECT_DIR/data/stealth-vpn/logs"/{xray,trojan,singbox,wireguard,caddy,admin,system}
+mkdir -p "$PROJECT_DIR/data/proxy/logs"/{xray,trojan,singbox,wireguard,caddy,admin,system}
 
 # Install Python dependencies for monitoring
 log "Checking Python dependencies..."
@@ -54,9 +54,9 @@ fi
 create_systemd_service() {
     log "Creating systemd service for monitoring..."
     
-    cat > /tmp/stealth-vpn-monitor.service <<EOF
+    cat > /tmp/proxy-monitor.service <<EOF
 [Unit]
-Description=Stealth VPN Server Monitoring
+Description=Multi-Protocol Proxy Server Monitoring
 After=docker.service
 Requires=docker.service
 
@@ -73,14 +73,14 @@ WantedBy=multi-user.target
 EOF
     
     if [[ $EUID -eq 0 ]]; then
-        mv /tmp/stealth-vpn-monitor.service /etc/systemd/system/
+        mv /tmp/proxy-monitor.service /etc/systemd/system/
         systemctl daemon-reload
-        log "Systemd service created: stealth-vpn-monitor.service"
-        log "To enable: sudo systemctl enable stealth-vpn-monitor"
-        log "To start: sudo systemctl start stealth-vpn-monitor"
+        log "Systemd service created: proxy-monitor.service"
+        log "To enable: sudo systemctl enable proxy-monitor"
+        log "To start: sudo systemctl start proxy-monitor"
     else
         warn "Cannot install systemd service without root privileges"
-        warn "Service file created at: /tmp/stealth-vpn-monitor.service"
+        warn "Service file created at: /tmp/proxy-monitor.service"
     fi
 }
 
@@ -89,25 +89,25 @@ setup_cron_jobs() {
     log "Setting up cron jobs..."
     
     # Create temporary cron file
-    CRON_FILE="/tmp/stealth-vpn-cron"
+    CRON_FILE="/tmp/proxy-cron"
     
     # Get existing crontab (if any)
-    crontab -l > "$CRON_FILE" 2>/dev/null || echo "# Stealth VPN Server Cron Jobs" > "$CRON_FILE"
+    crontab -l > "$CRON_FILE" 2>/dev/null || echo "# Multi-Protocol Proxy Server Cron Jobs" > "$CRON_FILE"
     
-    # Remove existing stealth-vpn cron jobs
-    sed -i.bak '/stealth-vpn/d' "$CRON_FILE"
+    # Remove existing proxy cron jobs
+    sed -i.bak '/Multi-Protocol Proxy Server/d' "$CRON_FILE"
     
     # Add new cron jobs
     cat >> "$CRON_FILE" <<EOF
 
-# Stealth VPN Server - Log rotation (daily at 2 AM)
-0 2 * * * cd $PROJECT_DIR && bash scripts/rotate-logs.sh >> data/stealth-vpn/logs/system/cron.log 2>&1
+# Multi-Protocol Proxy Server - Log rotation (daily at 2 AM)
+0 2 * * * cd $PROJECT_DIR && bash scripts/rotate-logs.sh >> data/proxy/logs/system/cron.log 2>&1
 
-# Stealth VPN Server - Health check (every 5 minutes)
-*/5 * * * * cd $PROJECT_DIR && python3 scripts/monitor-services.py >> data/stealth-vpn/logs/system/health.log 2>&1
+# Multi-Protocol Proxy Server - Health check (every 5 minutes)
+*/5 * * * * cd $PROJECT_DIR && python3 scripts/monitor-services.py >> data/proxy/logs/system/health.log 2>&1
 
-# Stealth VPN Server - Cleanup old logs (weekly on Sunday at 3 AM)
-0 3 * * 0 cd $PROJECT_DIR && python3 -c "from core.logging_manager import LoggingManager; m = LoggingManager(); print(m.cleanup_old_logs(7))" >> data/stealth-vpn/logs/system/cleanup.log 2>&1
+# Multi-Protocol Proxy Server - Cleanup old logs (weekly on Sunday at 3 AM)
+0 3 * * 0 cd $PROJECT_DIR && python3 -c "from core.logging_manager import LoggingManager; m = LoggingManager(); print(m.cleanup_old_logs(7))" >> data/proxy/logs/system/cleanup.log 2>&1
 
 EOF
     
@@ -134,7 +134,7 @@ create_dashboard_script() {
     cat > "$PROJECT_DIR/scripts/dashboard.sh" <<'EOF'
 #!/bin/bash
 
-# Simple monitoring dashboard for Stealth VPN Server
+# Simple monitoring dashboard for Multi-Protocol Proxy Server
 
 # Colors
 RED='\033[0;31m'
@@ -145,7 +145,7 @@ NC='\033[0m'
 
 clear
 echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║         Stealth VPN Server - Monitoring Dashboard         ║${NC}"
+echo -e "${BLUE}║    Multi-Protocol Proxy Server - Monitoring Dashboard     ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
 echo
 
@@ -156,20 +156,20 @@ echo
 
 # Docker container status
 echo -e "${YELLOW}Docker Containers:${NC}"
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" --filter "name=stealth-"
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 echo
 
 # Log disk usage
 echo -e "${YELLOW}Log Disk Usage:${NC}"
-du -sh data/stealth-vpn/logs/* 2>/dev/null | sort -h
+du -sh data/proxy/logs/* 2>/dev/null | sort -h
 echo
 
 # Recent alerts
 echo -e "${YELLOW}Recent Alerts (last 10):${NC}"
-if [[ -f data/stealth-vpn/logs/alerts.json ]]; then
+if [[ -f data/proxy/logs/alerts.json ]]; then
     python3 -c "
 import json
-with open('data/stealth-vpn/logs/alerts.json') as f:
+with open('data/proxy/logs/alerts.json') as f:
     alerts = json.load(f)
     for alert in alerts[-10:]:
         print(f\"{alert['timestamp']} [{alert['severity'].upper()}] {alert['service']}: {alert['message']}\")
@@ -223,7 +223,7 @@ main() {
     echo "  - Run health check:      python3 scripts/monitor-services.py"
     echo "  - Continuous monitoring: python3 scripts/monitor-services.py --continuous"
     echo "  - Rotate logs manually:  bash scripts/rotate-logs.sh"
-    echo "  - View cron jobs:        crontab -l | grep stealth-vpn"
+    echo "  - View cron jobs:        crontab -l | grep proxy-server"
     echo
     echo -e "${YELLOW}Note: Cron jobs will run automatically according to schedule${NC}"
     echo

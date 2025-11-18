@@ -21,7 +21,7 @@ def generate_session_secret() -> str:
 
 def main():
     print("=" * 60)
-    print("Stealth VPN Server - Admin Panel Setup")
+    print("Multi-Protocol Proxy Server - Admin Panel Setup")
     print("=" * 60)
     print()
     

@@ -26,9 +26,9 @@ class EndpointConfig:
 
 
 class EndpointManager:
-    """Manages obfuscated endpoints for VPN services"""
+    """Manages obfuscated endpoints for proxy services"""
     
-    def __init__(self, config_path: str = 'data/stealth-vpn/endpoints.json'):
+    def __init__(self, config_path: str = 'data/proxy/endpoints.json'):
         """
         Initialize endpoint manager
         

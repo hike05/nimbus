@@ -1,5 +1,5 @@
 """
-Sing-box configuration management for the Stealth VPN Server.
+Sing-box configuration management for the Multi-Protocol Proxy Server.
 Handles ShadowTLS v3, Hysteria 2, and TUIC v5 protocols with proper masking.
 """
 
@@ -17,7 +17,7 @@ from .interfaces import User
 class SingboxManager:
     """Manages Sing-box server and client configurations for multiple protocols."""
     
-    def __init__(self, config_dir: str = "data/stealth-vpn/configs", domain: str = "your-domain.com"):
+    def __init__(self, config_dir: str = "data/proxy/configs", domain: str = "your-domain.com"):
         self.config_dir = Path(config_dir)
         self.domain = domain
         self.server_config_path = self.config_dir / "singbox.json"

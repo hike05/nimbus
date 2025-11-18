@@ -20,7 +20,7 @@ def demo_user_management():
     
     # Initialize API
     api = XrayAPI(
-        config_dir="./data/stealth-vpn/configs",
+        config_dir="./data/proxy/configs",
         domain="demo.example.com"
     )
     
@@ -92,7 +92,7 @@ def demo_configuration_export():
     print("\n=== Xray API Demo: Configuration Export ===")
     
     api = XrayAPI(
-        config_dir="./data/stealth-vpn/configs",
+        config_dir="./data/proxy/configs",
         domain="demo.example.com"
     )
     
@@ -103,7 +103,7 @@ def demo_configuration_export():
         print("\n1. Exporting Alice's configurations:")
         
         # Save configurations to files for demonstration
-        export_dir = "./data/stealth-vpn/configs/export/alice"
+        export_dir = "./data/proxy/configs/export/alice"
         os.makedirs(export_dir, exist_ok=True)
         
         # Save XTLS configuration
@@ -139,7 +139,7 @@ def demo_server_management():
     print("\n=== Xray API Demo: Server Management ===")
     
     api = XrayAPI(
-        config_dir="./data/stealth-vpn/configs",
+        config_dir="./data/proxy/configs",
         domain="demo.example.com"
     )
     
@@ -153,7 +153,7 @@ def demo_server_management():
     print(f"   {message}")
     
     print("\n3. Server configuration file check:")
-    config_file = "./data/stealth-vpn/configs/xray.json"
+    config_file = "./data/proxy/configs/xray.json"
     if os.path.exists(config_file):
         with open(config_file, 'r') as f:
             config = json.load(f)

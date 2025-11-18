@@ -51,18 +51,18 @@ fi
 
 # Create necessary directories
 print_status "Creating directory structure..."
-mkdir -p data/stealth-vpn/logs/trojan
-mkdir -p data/stealth-vpn/configs/clients
-chmod 755 data/stealth-vpn/logs/trojan
+mkdir -p data/proxy/logs/trojan
+mkdir -p data/proxy/configs/clients
+chmod 755 data/proxy/logs/trojan
 
 # Set proper permissions
 print_status "Setting permissions..."
-if [ -f "data/stealth-vpn/configs/trojan.json" ]; then
-    chmod 600 data/stealth-vpn/configs/trojan.json
+if [ -f "data/proxy/configs/trojan.json" ]; then
+    chmod 600 data/proxy/configs/trojan.json
 fi
 
-if [ -f "data/stealth-vpn/configs/trojan.template.json" ]; then
-    chmod 644 data/stealth-vpn/configs/trojan.template.json
+if [ -f "data/proxy/configs/trojan.template.json" ]; then
+    chmod 644 data/proxy/configs/trojan.template.json
 fi
 
 # Test Trojan configuration
@@ -85,7 +85,7 @@ fi
 
 # Build Trojan container
 print_status "Building Trojan-Go container..."
-if docker build -t stealth-trojan ./trojan; then
+if docker build -t trojan ./trojan; then
     print_status "✓ Trojan-Go container built successfully"
 else
     print_error "✗ Failed to build Trojan-Go container"
@@ -93,23 +93,23 @@ else
 fi
 
 # Check if services are already running
-if docker-compose ps | grep -q "stealth-trojan"; then
-    print_warning "Trojan service is already running. Restarting..."
+if docker-compose ps | grep -q "trojan"; then
+    print_warning "Trojan proxy service is already running. Restarting..."
     docker-compose restart trojan
 else
-    print_status "Starting Trojan service..."
+    print_status "Starting Trojan proxy service..."
     docker-compose up -d trojan
 fi
 
 # Wait for service to start
-print_status "Waiting for Trojan service to start..."
+print_status "Waiting for Trojan proxy service to start..."
 sleep 10
 
 # Check service health
 if docker-compose ps trojan | grep -q "Up"; then
-    print_status "✓ Trojan service is running"
+    print_status "✓ Trojan proxy service is running"
 else
-    print_error "✗ Trojan service failed to start"
+    print_error "✗ Trojan proxy service failed to start"
     print_error "Checking logs..."
     docker-compose logs trojan
     exit 1
@@ -117,8 +117,8 @@ fi
 
 # Verify configuration
 print_status "Verifying Trojan configuration..."
-if [ -f "data/stealth-vpn/configs/trojan.json" ]; then
-    if python3 -m json.tool data/stealth-vpn/configs/trojan.json > /dev/null; then
+if [ -f "data/proxy/configs/trojan.json" ]; then
+    if python3 -m json.tool data/proxy/configs/trojan.json > /dev/null; then
         print_status "✓ Trojan configuration is valid JSON"
     else
         print_error "✗ Trojan configuration is invalid JSON"
@@ -130,8 +130,8 @@ else
 fi
 
 # Test service connectivity
-print_status "Testing Trojan service connectivity..."
-if docker exec stealth-trojan pgrep trojan-go > /dev/null; then
+print_status "Testing Trojan proxy service connectivity..."
+if docker exec trojan pgrep trojan-go > /dev/null; then
     print_status "✓ Trojan-Go process is running"
 else
     print_error "✗ Trojan-Go process is not running"
@@ -140,10 +140,10 @@ else
 fi
 
 # Display service information
-print_status "Trojan-Go service setup completed!"
+print_status "Trojan-Go proxy service setup completed!"
 echo
 echo "Service Information:"
-echo "  - Container: stealth-trojan"
+echo "  - Container: trojan"
 echo "  - Internal Port: 8002"
 echo "  - External Port: 443 (via Caddy)"
 echo "  - Protocol: Trojan-Go with TLS"
@@ -151,9 +151,9 @@ echo "  - WebSocket Path: /api/v1/files/sync"
 echo "  - SNI: www.your-domain.com"
 echo
 echo "Configuration Files:"
-echo "  - Server Config: data/stealth-vpn/configs/trojan.json"
-echo "  - Template: data/stealth-vpn/configs/trojan.template.json"
-echo "  - Logs: data/stealth-vpn/logs/trojan/"
+echo "  - Server Config: data/proxy/configs/trojan.json"
+echo "  - Template: data/proxy/configs/trojan.template.json"
+echo "  - Logs: data/proxy/logs/trojan/"
 echo
 echo "Management Commands:"
 echo "  - Generate server config: python3 scripts/trojan-config-manager.py generate-server"
@@ -162,10 +162,10 @@ echo "  - Add user password: python3 scripts/trojan-config-manager.py add-passwo
 echo "  - View logs: docker-compose logs trojan"
 echo "  - Restart service: docker-compose restart trojan"
 echo
-print_status "Trojan-Go is ready for use!"
+print_status "Trojan-Go proxy service is ready for use!"
 
 # Check if domain is configured
-if grep -q "your-domain.com" data/stealth-vpn/configs/trojan.json; then
+if grep -q "your-domain.com" data/proxy/configs/trojan.json; then
     print_warning "Remember to replace 'your-domain.com' with your actual domain name"
     print_warning "Update the configuration files and restart the service after domain setup"
 fi

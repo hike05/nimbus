@@ -29,7 +29,7 @@ DOMAIN_NAME, www.DOMAIN_NAME, api.DOMAIN_NAME, cdn.DOMAIN_NAME, files.DOMAIN_NAM
         }
     }
     
-    # SNI-based routing for VPN protocols using subdomains
+    # SNI-based routing for proxy protocols using subdomains
     @vision tls sni DOMAIN_NAME
     handle @vision {
         reverse_proxy xray:8001 {

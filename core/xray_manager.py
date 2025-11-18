@@ -1,5 +1,5 @@
 """
-Xray configuration management for the Stealth VPN Server.
+Xray configuration management for the Multi-Protocol Proxy Server.
 Handles server configuration generation, client config templates, and user management.
 """
 
@@ -17,7 +17,7 @@ from .interfaces import User, ConfigGeneratorInterface, XrayConfig
 class XrayConfigManager(ConfigGeneratorInterface):
     """Manages Xray server and client configurations."""
     
-    def __init__(self, config_dir: str = "/data/stealth-vpn/configs", domain: str = "your-domain.com"):
+    def __init__(self, config_dir: str = "/data/proxy/configs", domain: str = "your-domain.com"):
         self.config_dir = Path(config_dir)
         self.domain = domain
         self.template_path = self.config_dir / "xray.template.json"

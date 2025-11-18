@@ -78,7 +78,7 @@ docker-compose build admin
 docker-compose up -d admin
 
 # Or using docker build directly
-docker build -t stealth-admin:latest -f admin-panel/Dockerfile .
+docker build -t web:latest -f admin-panel/Dockerfile .
 ```
 
 ## Verification
@@ -106,7 +106,7 @@ A test script has been created at `admin-panel/test_dependencies.py` to verify:
 
 **Run the test inside the container after rebuild:**
 ```bash
-docker exec stealth-admin python3 /app/test_dependencies.py
+docker exec web python3 /app/test_dependencies.py
 ```
 
 ## Requirements Satisfied

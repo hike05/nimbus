@@ -1,8 +1,6 @@
 #!/bin/bash
-"""
-Health check script for Caddy container
-Verifies that Caddy is running and responding correctly
-"""
+# Health check script for Caddy container
+# Verifies that Caddy is running and responding correctly
 
 set -euo pipefail
 
@@ -95,8 +93,8 @@ check_config_syntax() {
 check_endpoints() {
     log_info "Checking obfuscated endpoints..."
     
-    if [ -f "data/stealth-vpn/endpoints.json" ]; then
-        endpoint_count=$(jq -r 'keys | length' data/stealth-vpn/endpoints.json 2>/dev/null || echo "0")
+    if [ -f "data/proxy/endpoints.json" ]; then
+        endpoint_count=$(jq -r 'keys | length' data/proxy/endpoints.json 2>/dev/null || echo "0")
         if [ "$endpoint_count" -gt 0 ]; then
             log_info "✓ Found $endpoint_count configured endpoint(s)"
         else
@@ -146,8 +144,8 @@ show_container_logs() {
 }
 
 main() {
-    echo "🔍 Caddy Health Check - Stealth VPN Server"
-    echo "=========================================="
+    echo "🔍 Caddy Health Check - Multi-Protocol Proxy Server"
+    echo "===================================================="
     
     local exit_code=0
     

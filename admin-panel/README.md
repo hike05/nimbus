@@ -1,17 +1,17 @@
-# Stealth VPN Server - Admin Panel
+# Multi-Protocol Proxy Server - Admin Panel
 
-Flask-based admin panel for managing VPN users and configurations, masqueraded as a cloud storage management interface.
+Flask-based admin panel for managing proxy users and configurations, masqueraded as a cloud storage management interface.
 
 ## Features
 
 ### User Management
-- Create new VPN users with auto-generated credentials
+- Create new proxy users with auto-generated credentials
 - View all users with status and activity information
 - Delete users and their configurations
 - Generate client configurations for all protocols
 
 ### Configuration Management
-- Update all VPN server configurations
+- Update all proxy server configurations
 - Graceful service reload without disconnecting users
 - Backup and restore functionality
 - Download client configuration files
@@ -113,7 +113,7 @@ admin-panel/
    - WireGuard key pair
    - Trojan password
    - Sing-box credentials
-5. Client configurations saved to `/data/stealth-vpn/configs/clients/<username>/`
+5. Client configurations saved to `/data/proxy/configs/clients/<username>/`
 
 ### Downloading Client Configs
 
@@ -147,7 +147,7 @@ admin-panel/
 - **Automatic Backups**: Before any destructive operation
 - **Rate Limiting**: Protection against brute force (via Caddy)
 
-## Integration with VPN Services
+## Integration with Proxy Services
 
 The admin panel automatically:
 1. Updates server configurations when users are added/removed
@@ -160,10 +160,10 @@ The admin panel automatically:
 ### Cannot login
 - Check `ADMIN_PASSWORD_HASH` environment variable
 - Verify bcrypt hash is correct
-- Check container logs: `docker logs stealth-admin`
+- Check container logs: `docker logs web`
 
 ### Configs not updating
-- Check file permissions in `/data/stealth-vpn/`
+- Check file permissions in `/data/proxy/`
 - Verify Docker socket access for service management
 - Check service logs for errors
 

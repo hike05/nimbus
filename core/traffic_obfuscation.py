@@ -247,7 +247,7 @@ class TrafficObfuscator:
 
 class FingerprintingProtection:
     """
-    Anti-fingerprinting measures for VPN protocols
+    Anti-fingerprinting measures for proxy protocols
     
     Protects against:
     - TLS fingerprinting
@@ -406,7 +406,7 @@ class TrafficShaper:
 
 def generate_obfuscation_config(protocol: str, pattern: TrafficPattern) -> Dict:
     """
-    Generate obfuscation configuration for VPN protocols
+    Generate obfuscation configuration for proxy protocols
     
     Args:
         protocol: Protocol name ("xray", "trojan", "singbox", "wireguard")

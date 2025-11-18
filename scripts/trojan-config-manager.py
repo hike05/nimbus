@@ -16,7 +16,7 @@ from core.trojan_manager import TrojanManager
 from core.interfaces import User
 
 
-def load_users_from_json(users_file: str = "data/stealth-vpn/configs/users.json") -> dict:
+def load_users_from_json(users_file: str = "data/proxy/configs/users.json") -> dict:
     """Load users from JSON file."""
     try:
         with open(users_file, 'r') as f:
@@ -30,7 +30,7 @@ def load_users_from_json(users_file: str = "data/stealth-vpn/configs/users.json"
         return {}
 
 
-def save_users_to_json(users_data: dict, users_file: str = "data/stealth-vpn/configs/users.json"):
+def save_users_to_json(users_data: dict, users_file: str = "data/proxy/configs/users.json"):
     """Save users to JSON file."""
     try:
         # Load existing data
@@ -136,7 +136,7 @@ def generate_client_config(username: str):
     client_configs = trojan_manager.get_client_configs(user)
     
     # Save client configs to files
-    client_dir = Path(f"data/stealth-vpn/configs/clients/{username}")
+    client_dir = Path(f"data/proxy/configs/clients/{username}")
     client_dir.mkdir(parents=True, exist_ok=True)
     
     # Save JSON config

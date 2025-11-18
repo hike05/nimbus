@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Generate obfuscated endpoints for stealth VPN server
-This script creates realistic-looking paths for VPN services with rotation support
+Generate obfuscated endpoints for multi-protocol proxy server
+This script creates realistic-looking paths for proxy services with rotation support
 """
 
 import sys
@@ -110,7 +110,7 @@ def main():
     show_stats = '--stats' in args or '-s' in args
     validate_only = '--validate' in args or '-v' in args
     
-    print("🔧 Stealth VPN Server - Endpoint Management")
+    print("🔧 Multi-Protocol Proxy Server - Endpoint Management")
     print("=" * 60)
     
     # Initialize endpoint manager

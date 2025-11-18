@@ -17,7 +17,7 @@ from qr_generator import QRCodeGenerator
 class ClientConfigManager:
     """Manages client configuration files."""
     
-    def __init__(self, config_dir: str = "/data/stealth-vpn/configs", domain: str = "your-domain.com"):
+    def __init__(self, config_dir: str = "/data/proxy/configs", domain: str = "your-domain.com"):
         self.config_dir = Path(config_dir)
         self.clients_dir = self.config_dir / "clients"
         self.domain = domain
@@ -75,7 +75,7 @@ class ClientConfigManager:
                     f.write(configs['wireguard_obfs_conf'])
             
             # Save connection links
-            links_content = f"""# VPN Connection Links for {username}
+            links_content = f"""# Proxy Connection Links for {username}
 
 ## Xray XTLS-Vision (Recommended for Desktop)
 {configs.get('xray_xtls_link', 'N/A')}
@@ -104,7 +104,7 @@ See wireguard-websocket.conf file
 ## Usage Instructions
 
 ### For Mobile (iOS/Android):
-1. Install appropriate VPN client app:
+1. Install appropriate proxy client app:
    - Xray/Trojan: v2rayNG (Android) or Shadowrocket (iOS)
    - Sing-box protocols: Sing-box app (Android/iOS)
    - Hysteria2: Clash Meta or Sing-box

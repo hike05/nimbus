@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Stealth VPN Server Service Manager
+# Multi-Protocol Proxy Server Service Manager
 # Utility for managing Docker services
 
 set -e
@@ -182,7 +182,7 @@ backup_data() {
     mkdir -p "$backup_dir"
     
     # Backup configuration files
-    cp -r data/stealth-vpn/configs "$backup_dir/"
+    cp -r data/proxy/configs "$backup_dir/"
     cp .env "$backup_dir/" 2>/dev/null || true
     
     # Create tarball
@@ -214,7 +214,7 @@ restore_data() {
     
     # Copy files
     local backup_dir=$(basename "$backup_file" .tar.gz)
-    cp -r "$backup_dir/configs/"* data/stealth-vpn/configs/
+    cp -r "$backup_dir/configs/"* data/proxy/configs/
     cp "$backup_dir/.env" . 2>/dev/null || true
     
     # Cleanup
@@ -228,7 +228,7 @@ restore_data() {
 
 # Show usage
 usage() {
-    echo "Stealth VPN Server Service Manager"
+    echo "Multi-Protocol Proxy Server Service Manager"
     echo
     echo "Usage: $0 <command> [options]"
     echo

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Sing-box Configuration Manager
-Manages ShadowTLS v3, Hysteria 2, and TUIC v5 configurations for the Stealth VPN Server.
+Manages ShadowTLS v3, Hysteria 2, and TUIC v5 configurations for the Multi-Protocol Proxy Server.
 """
 
 import json
@@ -16,7 +16,7 @@ from core.singbox_manager import SingboxManager, create_singbox_user_data
 from core.interfaces import User
 
 
-def load_users(config_dir: str = "data/stealth-vpn/configs") -> dict:
+def load_users(config_dir: str = "data/proxy/configs") -> dict:
     """Load users from the JSON file."""
     users_file = Path(config_dir) / "users.json"
     
@@ -33,7 +33,7 @@ def load_users(config_dir: str = "data/stealth-vpn/configs") -> dict:
         return {}
 
 
-def save_users(users_data: dict, config_dir: str = "data/stealth-vpn/configs") -> bool:
+def save_users(users_data: dict, config_dir: str = "data/proxy/configs") -> bool:
     """Save users to the JSON file."""
     users_file = Path(config_dir) / "users.json"
     
@@ -88,7 +88,7 @@ def create_user_objects(users_data: dict) -> dict:
     return users
 
 
-def add_singbox_credentials_to_user(username: str, config_dir: str = "data/stealth-vpn/configs") -> bool:
+def add_singbox_credentials_to_user(username: str, config_dir: str = "data/proxy/configs") -> bool:
     """Add Sing-box credentials to an existing user."""
     users_data = load_users(config_dir)
     
@@ -111,7 +111,7 @@ def add_singbox_credentials_to_user(username: str, config_dir: str = "data/steal
         return False
 
 
-def generate_server_config(domain: str = "your-domain.com", config_dir: str = "data/stealth-vpn/configs") -> bool:
+def generate_server_config(domain: str = "your-domain.com", config_dir: str = "data/proxy/configs") -> bool:
     """Generate Sing-box server configuration."""
     try:
         # Load users
@@ -137,7 +137,7 @@ def generate_server_config(domain: str = "your-domain.com", config_dir: str = "d
         return False
 
 
-def generate_client_configs(username: str, domain: str = "your-domain.com", config_dir: str = "data/stealth-vpn/configs") -> bool:
+def generate_client_configs(username: str, domain: str = "your-domain.com", config_dir: str = "data/proxy/configs") -> bool:
     """Generate client configurations for a specific user."""
     try:
         # Load users
@@ -204,7 +204,7 @@ def main():
     
     if command == "generate-server":
         domain = sys.argv[2] if len(sys.argv) > 2 else "your-domain.com"
-        config_dir = sys.argv[3] if len(sys.argv) > 3 else "data/stealth-vpn/configs"
+        config_dir = sys.argv[3] if len(sys.argv) > 3 else "data/proxy/configs"
         
         if generate_server_config(domain, config_dir):
             print("Server configuration generated successfully")
@@ -219,7 +219,7 @@ def main():
         
         username = sys.argv[2]
         domain = sys.argv[3] if len(sys.argv) > 3 else "your-domain.com"
-        config_dir = sys.argv[4] if len(sys.argv) > 4 else "data/stealth-vpn/configs"
+        config_dir = sys.argv[4] if len(sys.argv) > 4 else "data/proxy/configs"
         
         if generate_client_configs(username, domain, config_dir):
             print(f"Client configurations generated for {username}")
@@ -233,7 +233,7 @@ def main():
             sys.exit(1)
         
         username = sys.argv[2]
-        config_dir = sys.argv[3] if len(sys.argv) > 3 else "data/stealth-vpn/configs"
+        config_dir = sys.argv[3] if len(sys.argv) > 3 else "data/proxy/configs"
         
         if add_singbox_credentials_to_user(username, config_dir):
             print(f"Sing-box credentials added to {username}")

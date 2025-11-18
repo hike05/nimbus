@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Centralized logging manager for Stealth VPN Server
+Centralized logging manager for Multi-Protocol Proxy Server
 Implements security-focused logging (no IP addresses)
 """
 
@@ -102,7 +102,7 @@ class LoggingManager:
     
     def __init__(
         self,
-        log_dir: Path = Path("/data/stealth-vpn/logs"),
+        log_dir: Path = Path("/data/proxy/logs"),
         max_bytes: int = 10 * 1024 * 1024,  # 10MB
         backup_count: int = 5,
         anonymize_ips: bool = True

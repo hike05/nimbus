@@ -1,5 +1,5 @@
 """
-Xray API module for the Stealth VPN Server.
+Xray API module for the Multi-Protocol Proxy Server.
 Provides high-level API for Xray user and configuration management.
 """
 
@@ -16,7 +16,7 @@ from .service_manager import DockerServiceManager, XrayServiceIntegration
 class XrayAPI:
     """High-level API for Xray management."""
     
-    def __init__(self, config_dir: str = "./data/stealth-vpn/configs", domain: str = "your-domain.com"):
+    def __init__(self, config_dir: str = "./data/proxy/configs", domain: str = "your-domain.com"):
         self.config_dir = Path(config_dir)
         self.domain = domain
         

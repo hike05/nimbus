@@ -1,5 +1,5 @@
 """
-Service management for Docker-based VPN services.
+Service management for Docker-based proxy services.
 Handles service reloading and health checks.
 """
 
@@ -13,19 +13,19 @@ from interfaces import ServiceManagerInterface
 
 
 class DockerServiceManager(ServiceManagerInterface):
-    """Manages Docker-based VPN services."""
+    """Manages Docker-based proxy services."""
     
     def __init__(self):
         self.services = {
-            "xray": "stealth-xray",
-            "trojan": "stealth-trojan",
-            "singbox": "stealth-singbox",
-            "wireguard": "stealth-wireguard",
-            "caddy": "stealth-caddy"
+            "xray": "proxy-a",
+            "trojan": "proxy-b",
+            "singbox": "proxy-c",
+            "wireguard": "proxy-d",
+            "caddy": "gateway"
         }
     
     def reload_service(self, service_name: str) -> bool:
-        """Gracefully reload a VPN service."""
+        """Gracefully reload a proxy service."""
         try:
             container_name = self.services.get(service_name)
             if not container_name:
@@ -76,14 +76,14 @@ class DockerServiceManager(ServiceManagerInterface):
             return False
     
     def get_service_status(self) -> Dict[str, bool]:
-        """Get status of all VPN services."""
+        """Get status of all proxy services."""
         status = {}
         for service_name in self.services.keys():
             status[service_name] = self.check_service_health(service_name)
         return status
     
     def stop_service(self, service_name: str) -> bool:
-        """Stop a VPN service."""
+        """Stop a proxy service."""
         try:
             container_name = self.services.get(service_name)
             if not container_name:
@@ -110,7 +110,7 @@ class DockerServiceManager(ServiceManagerInterface):
             return False
     
     def start_service(self, service_name: str) -> bool:
-        """Start a VPN service."""
+        """Start a proxy service."""
         try:
             container_name = self.services.get(service_name)
             if not container_name:

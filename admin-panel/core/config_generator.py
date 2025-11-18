@@ -1,5 +1,5 @@
 """
-Configuration generator for all VPN protocols.
+Configuration generator for all proxy protocols.
 Generates server and client configurations for Xray, Trojan, Sing-box, and WireGuard.
 """
 
@@ -21,9 +21,9 @@ except ImportError:
 
 
 class ConfigGenerator(ConfigGeneratorInterface):
-    """Generates VPN server and client configurations."""
+    """Generates proxy server and client configurations."""
     
-    def __init__(self, config_dir: str = "/data/stealth-vpn/configs", domain: str = "your-domain.com"):
+    def __init__(self, config_dir: str = "/data/proxy/configs", domain: str = "your-domain.com"):
         self.config_dir = Path(config_dir)
         self.domain = domain
         self.user_storage = UserStorage(config_dir)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Health check script for Stealth VPN Server
+# Health check script for Multi-Protocol Proxy Server
 # Verifies that all components are properly configured
 
 set -e
@@ -52,9 +52,9 @@ check_directories() {
     log "Checking directory structure..."
     
     local required_dirs=(
-        "data/stealth-vpn/configs"
-        "data/stealth-vpn/backups"
-        "data/stealth-vpn/configs/wireguard"
+        "data/proxy/configs"
+        "data/proxy/backups"
+        "data/proxy/configs/wireguard"
         "data/caddy"
         "data/www"
         "admin-panel/templates"
@@ -144,7 +144,7 @@ check_ports() {
 
 # Main health check function
 main() {
-    log "Starting Stealth VPN Server health check..."
+    log "Starting Multi-Protocol Proxy Server health check..."
     echo
     
     check_files

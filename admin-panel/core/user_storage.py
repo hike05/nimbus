@@ -1,5 +1,5 @@
 """
-User storage implementation for the Stealth VPN Server.
+User storage implementation for the Multi-Protocol Proxy Server.
 Handles JSON-based user data persistence with backup functionality.
 """
 
@@ -24,7 +24,7 @@ class UserStorage(UserStorageInterface):
     # Schema version for data migration
     SCHEMA_VERSION = 1
     
-    def __init__(self, config_dir: str = "/data/stealth-vpn/configs"):
+    def __init__(self, config_dir: str = "/data/proxy/configs"):
         self.config_dir = Path(config_dir)
         self.users_file = self.config_dir / "users.json"
         self.backup_dir = self.config_dir.parent / "backups"

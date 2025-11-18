@@ -1,5 +1,5 @@
 """
-Trojan-Go configuration management for the Stealth VPN Server.
+Trojan-Go configuration management for the Multi-Protocol Proxy Server.
 Handles server configuration generation, client config creation, and user management.
 """
 
@@ -15,7 +15,7 @@ from .interfaces import User, TrojanConfig
 class TrojanManager:
     """Manages Trojan-Go server and client configurations."""
     
-    def __init__(self, config_dir: str = "data/stealth-vpn/configs"):
+    def __init__(self, config_dir: str = "data/proxy/configs"):
         self.config_dir = Path(config_dir)
         self.server_config_path = self.config_dir / "trojan.json"
         self.template_path = self.config_dir / "trojan.template.json"

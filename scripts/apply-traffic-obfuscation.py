@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Apply Traffic Obfuscation to VPN Configurations
+Apply Traffic Obfuscation to Proxy Configurations
 
-This script applies traffic analysis protection measures to all VPN protocol
+This script applies traffic analysis protection measures to all proxy protocol
 configurations including timing randomization, packet size normalization,
 and anti-fingerprinting.
 
@@ -269,10 +269,10 @@ def apply_wireguard_obfuscation(config_dir: Path) -> bool:
 
 def main():
     """Main function"""
-    log("Applying traffic analysis protection to all VPN protocols...")
+    log("Applying traffic analysis protection to all proxy protocols...")
     
     # Configuration paths
-    config_base = Path(__file__).parent.parent / 'data' / 'stealth-vpn' / 'configs'
+    config_base = Path(__file__).parent.parent / 'data' / 'proxy' / 'configs'
     
     success = True
     

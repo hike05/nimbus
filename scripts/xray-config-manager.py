@@ -44,7 +44,7 @@ def test_xray_config_generation():
     
     # Initialize Xray manager
     config_manager = XrayConfigManager(
-        config_dir="./data/stealth-vpn/configs",
+        config_dir="./data/proxy/configs",
         domain="example.com"
     )
     
@@ -66,7 +66,7 @@ def test_xray_config_generation():
         print(f"WebSocket Link: {client_configs['xray_ws_link']}")
         
         # Save client configs to files
-        config_dir = Path(f"./data/stealth-vpn/configs/clients/{username}")
+        config_dir = Path(f"./data/proxy/configs/clients/{username}")
         config_dir.mkdir(parents=True, exist_ok=True)
         
         with open(config_dir / "xray-xtls.json", 'w') as f:
@@ -79,7 +79,7 @@ def test_xray_config_generation():
             f.write(f"XTLS-Vision: {client_configs['xray_xtls_link']}\n")
             f.write(f"WebSocket: {client_configs['xray_ws_link']}\n")
         
-        print(f"✓ Client configs saved to ./data/stealth-vpn/configs/clients/{username}/")
+        print(f"✓ Client configs saved to ./data/proxy/configs/clients/{username}/")
     
     print("\n✓ All configurations generated successfully!")
 
@@ -88,7 +88,7 @@ def validate_xray_config():
     """Validate the generated Xray configuration."""
     print("Validating Xray configuration...")
     
-    config_path = Path("./data/stealth-vpn/configs/xray.json")
+    config_path = Path("./data/proxy/configs/xray.json")
     if not config_path.exists():
         print("❌ xray.json not found. Run test generation first.")
         return False

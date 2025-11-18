@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}VPN Admin Panel{% endblock %}
+{% block title %}Proxy Admin Panel{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-md-12">
-        <h2><i class="bi bi-shield-lock"></i> VPN Server Administration</h2>
-        <p class="text-muted">Manage VPN users, configurations, and system monitoring</p>
+        <h2><i class="bi bi-shield-lock"></i> Proxy Server Administration</h2>
+        <p class="text-muted">Manage proxy users, configurations, and system monitoring</p>
     </div>
 </div>
 
@@ -16,7 +16,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <i class="bi bi-hdd-network" style="font-size: 2rem; color: #0d6efd;"></i>
-                <h5 class="card-title mt-2">VPN Services</h5>
+                <h5 class="card-title mt-2">Proxy Services</h5>
                 <h3 id="service-count">-</h3>
                 <small class="text-muted">Active</small>
             </div>
@@ -173,7 +173,7 @@
 <!-- User Management Section -->
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-people"></i> VPN Users</h5>
+        <h5 class="mb-0"><i class="bi bi-people"></i> Proxy Users</h5>
         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
             <i class="bi bi-plus-circle"></i> Add New User
         </button>
@@ -363,7 +363,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Add New VPN User</h5>
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Add New Proxy User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -391,7 +391,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-file-code"></i> VPN Client Configurations</h5>
+                <h5 class="modal-title"><i class="bi bi-file-code"></i> Proxy Client Configurations</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -427,7 +427,7 @@
                     This backup will include:
                     <ul class="mb-0 mt-2">
                         <li>User configurations</li>
-                        <li>VPN server configs (Xray, Trojan, Sing-box, WireGuard)</li>
+                        <li>Proxy server configs (Xray, Trojan, Sing-box, WireGuard)</li>
                         <li>Client configurations</li>
                         <li>SSL certificates (if accessible)</li>
                         <li>Caddyfile (if accessible)</li>
@@ -701,7 +701,7 @@ function renderUsersTable() {
     const tbody = document.getElementById('users-table');
     
     if (currentUsers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No VPN users created yet</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No proxy users created yet</td></tr>';
         return;
     }
     
@@ -766,7 +766,7 @@ function createUser() {
 }
 
 function deleteUser(username) {
-    if (!confirm(`Are you sure you want to delete VPN user "${username}"? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete proxy user "${username}"? This action cannot be undone.`)) {
         return;
     }
     
@@ -820,7 +820,7 @@ function viewConfigs(username) {
 
 function renderConfigs(username, configs) {
     const configHtml = `
-        <h6 class="mb-3">VPN Configurations for User: <strong>${username}</strong></h6>
+        <h6 class="mb-3">Proxy Configurations for User: <strong>${username}</strong></h6>
         
         <ul class="nav nav-tabs" role="tablist">
             <li class="nav-item">
@@ -931,7 +931,7 @@ function renderConfigs(username, configs) {
             
             <div class="tab-pane fade" id="qrcodes">
                 <div class="alert alert-info mb-3">
-                    <i class="bi bi-info-circle"></i> Scan QR codes with your mobile VPN client app
+                    <i class="bi bi-info-circle"></i> Scan QR codes with your mobile proxy client app
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
@@ -1175,7 +1175,7 @@ function restoreBackup(filename) {
     const confirmMsg = `⚠️ RESTORE BACKUP WARNING ⚠️\n\n` +
         `You are about to restore backup: "${filename}"\n\n` +
         `This will:\n` +
-        `• Stop all VPN services temporarily\n` +
+        `• Stop all proxy services temporarily\n` +
         `• Overwrite current configurations\n` +
         `• Create a safety backup before restoring\n` +
         `• Restart all services after restore\n` +

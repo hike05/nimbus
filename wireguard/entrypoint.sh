@@ -39,7 +39,7 @@ WEBSOCKET_PORT="${WEBSOCKET_PORT:-8006}"
 UDP2RAW_PORT="${UDP2RAW_PORT:-8007}"
 UDP2RAW_KEY="${UDP2RAW_KEY:-$(head -c 32 /dev/urandom | base64)}"
 
-log "Starting WireGuard service with obfuscation..."
+log "Starting WireGuard proxy service with obfuscation..."
 
 # Create directories if they don't exist
 mkdir -p "${WG_KEYS_DIR}" "${WG_PEER_DIR}"
@@ -140,7 +140,7 @@ fi
 
 # Cleanup function
 cleanup() {
-    log "Shutting down WireGuard service..."
+    log "Shutting down WireGuard proxy service..."
     
     # Stop WebSocket proxy
     if [ -f /var/run/websocket.pid ]; then
@@ -159,13 +159,13 @@ cleanup() {
     # Stop WireGuard interface
     wg-quick down "${WG_INTERFACE}" || true
     
-    log "WireGuard service stopped"
+    log "WireGuard proxy service stopped"
     exit 0
 }
 
 trap cleanup SIGTERM SIGINT
 
-log "WireGuard service is ready"
+log "WireGuard proxy service is ready"
 log "Native WireGuard: UDP port ${WG_PORT}"
 [ "${ENABLE_WEBSOCKET}" = "true" ] && log "WebSocket transport: TCP port ${WEBSOCKET_PORT}"
 [ "${ENABLE_UDP2RAW}" = "true" ] && log "udp2raw transport: TCP port ${UDP2RAW_PORT}"

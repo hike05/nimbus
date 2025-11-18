@@ -1,5 +1,5 @@
 """
-QR code generator for VPN client configurations.
+QR code generator for proxy client configurations.
 Generates QR codes for mobile client apps.
 """
 
@@ -15,9 +15,9 @@ from config_generator import ConfigGenerator
 
 
 class QRCodeGenerator:
-    """Generates QR codes for VPN configurations."""
+    """Generates QR codes for proxy configurations."""
     
-    def __init__(self, config_dir: str = "/data/stealth-vpn/configs", domain: str = "your-domain.com"):
+    def __init__(self, config_dir: str = "/data/proxy/configs", domain: str = "your-domain.com"):
         self.config_generator = ConfigGenerator(config_dir, domain)
     
     def generate_qr_code(self, data: str, format: str = 'PNG') -> bytes:

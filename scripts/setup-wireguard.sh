@@ -20,13 +20,13 @@ error() {
     echo -e "${RED}[Setup]${NC} $1"
 }
 
-log "Setting up WireGuard service..."
+log "Setting up WireGuard proxy service..."
 
 # Configuration directories
-WG_CONFIG_DIR="./data/stealth-vpn/configs/wireguard"
+WG_CONFIG_DIR="./data/proxy/configs/wireguard"
 WG_KEYS_DIR="${WG_CONFIG_DIR}/keys"
 WG_PEER_DIR="${WG_CONFIG_DIR}/peer_configs"
-WG_LOG_DIR="./data/stealth-vpn/logs/wireguard"
+WG_LOG_DIR="./data/proxy/logs/wireguard"
 
 # Create directories
 log "Creating WireGuard directories..."
@@ -105,7 +105,7 @@ else
 fi
 
 # Check WireGuard service status
-log "Checking WireGuard service status..."
+log "Checking WireGuard proxy service status..."
 if docker compose exec -T wireguard wg show wg0 > /dev/null 2>&1; then
     log "WireGuard interface is up and running"
     docker compose exec -T wireguard wg show wg0
@@ -123,4 +123,4 @@ log "  - udp2raw transport: TCP port 8007 (TCP masking)"
 log ""
 log "All external connections should use WebSocket or udp2raw for obfuscation"
 
-log "WireGuard setup complete!"
+log "WireGuard proxy service setup complete!"

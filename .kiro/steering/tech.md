@@ -23,14 +23,16 @@
 
 ## Docker Services
 
-All services run in isolated containers on the `stealth-vpn` bridge network:
+All services run in isolated containers on a bridge network:
 
-- `caddy` - Web server and reverse proxy (ports 80, 443, 443/udp)
-- `xray` - Xray-core VPN service
-- `trojan` - Trojan-Go VPN service
-- `singbox` - Sing-box multi-protocol service
-- `wireguard` - WireGuard VPN service
-- `admin` - Flask-based admin panel
+- `caddy` (container: stealth-caddy) - Web server and reverse proxy (ports 80, 443, 443/udp)
+- `xray` (container: stealth-xray) - Xray-core proxy service
+- `trojan` (container: stealth-trojan) - Trojan-Go proxy service
+- `singbox` (container: stealth-singbox) - Sing-box multi-protocol service
+- `wireguard` (container: stealth-wireguard) - WireGuard proxy service
+- `admin` (container: stealth-admin) - Flask-based admin panel
+
+**Note:** Container names and terminology are being refactored to use neutral naming (gateway, web, proxy-a, proxy-b, proxy-c, proxy-d) as part of the automated deployment spec.
 
 ## Common Commands
 
@@ -85,9 +87,11 @@ No build step required - Python scripts run directly. Docker images are built fr
 
 ## File Paths
 
-- **Configs**: `./data/stealth-vpn/configs/`
+- **Configs**: `./data/stealth-vpn/configs/` (being refactored to `./data/proxy/configs/`)
 - **Client Configs**: `./data/stealth-vpn/configs/clients/{username}/`
 - **Logs**: `./data/stealth-vpn/logs/{service}/`
 - **Backups**: `./data/stealth-vpn/backups/`
 - **SSL Certs**: `./data/caddy/certificates/`
 - **Web Files**: `./data/www/`
+
+**Note:** Data directory paths are being refactored from `stealth-vpn` to `proxy` as part of the automated deployment spec.

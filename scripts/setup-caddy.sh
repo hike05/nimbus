@@ -1,8 +1,6 @@
 #!/bin/bash
-"""
-Setup script for Caddy configuration
-Configures domain name and generates obfuscated endpoints
-"""
+# Setup script for Caddy configuration
+# Configures domain name and generates obfuscated endpoints
 
 set -euo pipefail
 
@@ -35,8 +33,8 @@ CADDYFILE_OUTPUT="config/Caddyfile"
 ENDPOINTS_SCRIPT="scripts/generate-endpoints.py"
 
 show_banner() {
-    echo "🚀 Stealth VPN Server - Caddy Setup"
-    echo "===================================="
+    echo "🚀 Multi-Protocol Proxy Server - Caddy Setup"
+    echo "============================================="
     echo ""
 }
 
@@ -74,7 +72,7 @@ get_domain_name() {
     
     echo ""
     echo "Please enter your domain name (e.g., example.com):"
-    echo "This will be used for SSL certificates and VPN configuration."
+    echo "This will be used for SSL certificates and proxy configuration."
     echo ""
     read -p "Domain name: " domain_input
     
@@ -103,12 +101,12 @@ generate_endpoints() {
         log_info "✓ Endpoints generated successfully"
         
         # Load generated endpoints
-        if [ -f "data/stealth-vpn/endpoints.json" ]; then
-            ADMIN_ENDPOINT=$(python3 -c "import json; print(json.load(open('data/stealth-vpn/endpoints.json'))['admin_panel'])")
-            XRAY_WS_ENDPOINT=$(python3 -c "import json; print(json.load(open('data/stealth-vpn/endpoints.json'))['xray_websocket'])")
-            WG_WS_ENDPOINT=$(python3 -c "import json; print(json.load(open('data/stealth-vpn/endpoints.json'))['wireguard_websocket'])")
-            HEALTH_ENDPOINT=$(python3 -c "import json; print(json.load(open('data/stealth-vpn/endpoints.json'))['health_check'])")
-            WEBRTC_ENDPOINT=$(python3 -c "import json; print(json.load(open('data/stealth-vpn/endpoints.json'))['webrtc_signal'])")
+        if [ -f "data/proxy/endpoints.json" ]; then
+            ADMIN_ENDPOINT=$(python3 -c "import json; print(json.load(open('data/proxy/endpoints.json'))['admin_panel'])")
+            XRAY_WS_ENDPOINT=$(python3 -c "import json; print(json.load(open('data/proxy/endpoints.json'))['xray_websocket'])")
+            WG_WS_ENDPOINT=$(python3 -c "import json; print(json.load(open('data/proxy/endpoints.json'))['wireguard_websocket'])")
+            HEALTH_ENDPOINT=$(python3 -c "import json; print(json.load(open('data/proxy/endpoints.json'))['health_check'])")
+            WEBRTC_ENDPOINT=$(python3 -c "import json; print(json.load(open('data/proxy/endpoints.json'))['webrtc_signal'])")
             
             log_info "Generated endpoints:"
             log_info "  Admin Panel:      $ADMIN_ENDPOINT"
@@ -154,9 +152,9 @@ create_directories() {
     directories=(
         "data/caddy"
         "data/www"
-        "data/stealth-vpn"
-        "data/stealth-vpn/configs"
-        "data/stealth-vpn/backups"
+        "data/proxy"
+        "data/proxy/configs"
+        "data/proxy/backups"
     )
     
     for dir in "${directories[@]}"; do
@@ -211,7 +209,7 @@ show_next_steps() {
     echo "   Admin Panel: https://$DOMAIN_NAME$ADMIN_ENDPOINT"
     echo "   API Docs:    https://$DOMAIN_NAME/api/v1/docs"
     echo ""
-    echo "5. 🔐 Configure VPN clients with the generated endpoints"
+    echo "5. 🔐 Configure proxy clients with the generated endpoints"
     echo ""
     log_warn "⚠️  Important: Keep the endpoints.json file secure!"
     log_warn "⚠️  The admin panel endpoint should only be shared with authorized users."

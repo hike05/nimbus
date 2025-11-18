@@ -17,7 +17,7 @@ from core.interfaces import User, WireGuardConfig
 class WireGuardManager:
     """Manages WireGuard server and client configurations with obfuscation."""
     
-    def __init__(self, config_dir: Path = Path("/data/stealth-vpn/configs")):
+    def __init__(self, config_dir: Path = Path("/data/proxy/configs")):
         self.config_dir = config_dir
         self.wg_config_dir = config_dir / "wireguard"
         self.wg_config_dir.mkdir(parents=True, exist_ok=True)

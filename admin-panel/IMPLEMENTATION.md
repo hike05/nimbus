@@ -2,7 +2,7 @@
 
 ## Overview
 
-Implemented a complete Flask-based admin panel for the Stealth VPN Server with user management, configuration generation, backup/restore functionality, and service management capabilities.
+Implemented a complete Flask-based admin panel for the Multi-Protocol Proxy Server with user management, configuration generation, backup/restore functionality, and service management capabilities.
 
 ## Components Implemented
 
@@ -56,7 +56,7 @@ Implemented a complete Flask-based admin panel for the Stealth VPN Server with u
 
 #### ClientConfigManager (client_config_manager.py)
 - Individual client configuration file management
-- Saves configs to `/data/stealth-vpn/configs/clients/<username>/`
+- Saves configs to `/data/proxy/configs/clients/<username>/`
 - Generates usage instructions
 - Cleanup on user deletion
 
@@ -210,8 +210,8 @@ admin-panel/
 
 ## Integration Points
 
-### With VPN Services
-- Reads/writes configuration files in `/data/stealth-vpn/configs/`
+### With Proxy Services
+- Reads/writes configuration files in `/data/proxy/configs/`
 - Triggers service reloads via Docker API
 - Monitors service health via Docker inspect
 
@@ -251,7 +251,7 @@ Test results: **All tests passed**
 ✅ Individual client config files
 
 ### Task 7.3: Implement configuration management
-✅ Update all VPN server configs
+✅ Update all proxy server configs
 ✅ Graceful service reload mechanisms
 ✅ Backup and restore functionality
 ✅ Service health monitoring

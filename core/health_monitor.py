@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Health monitoring system for Stealth VPN Server
+Health monitoring system for Multi-Protocol Proxy Server
 Monitors all services and provides health check endpoints
 """
 
@@ -43,9 +43,9 @@ class SystemHealth:
 
 
 class HealthMonitor:
-    """Monitor health of all VPN services"""
+    """Monitor health of all proxy services"""
     
-    def __init__(self, data_dir: Path = Path("/data/stealth-vpn")):
+    def __init__(self, data_dir: Path = Path("/data/proxy")):
         self.data_dir = data_dir
         self.health_log = data_dir / "logs" / "health.json"
         self.health_log.parent.mkdir(parents=True, exist_ok=True)

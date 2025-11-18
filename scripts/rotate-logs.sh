@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Log rotation script for Stealth VPN Server
+# Log rotation script for Multi-Protocol Proxy Server
 # Rotates and compresses old log files
 
 set -e
@@ -25,7 +25,7 @@ error() {
 }
 
 # Configuration
-LOG_DIR="${LOG_DIR:-./data/stealth-vpn/logs}"
+LOG_DIR="${LOG_DIR:-./data/proxy/logs}"
 MAX_AGE_DAYS="${MAX_AGE_DAYS:-7}"
 COMPRESS_AGE_DAYS="${COMPRESS_AGE_DAYS:-1}"
 

@@ -39,7 +39,7 @@ def error(message: str):
 
 def load_users() -> dict:
     """Load users from JSON file."""
-    users_file = Path("./data/stealth-vpn/configs/users.json")
+    users_file = Path("./data/proxy/configs/users.json")
     
     if not users_file.exists():
         return {}
